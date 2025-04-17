@@ -1,0 +1,63 @@
+
+@startuml
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+hide methods
+hide stereotypes
+
+Table(User, "Пользователь") {
+  primary_key(id): UUID
+  name: String
+  role: String
+  inn: String
+  phone: String
+}
+
+Table(Transaction, "Финансовая операция") {
+  primary_key(id): UUID
+  user_id: UUID
+  type: String
+  amount: BigDecimal
+  status_id: UUID
+  recipient_id: UUID
+  bank_from_id: UUID
+  transaction_account: String
+  timestamp: DateTime
+  comment: String
+}
+
+Table(Recipient, "Получатель") {
+  primary_key(id): UUID
+  inn: String
+  phone: String
+  account_number: String
+  bank_id: UUID
+  category_id: UUID
+}
+
+Table(Bank, "Банк") {
+  primary_key(id): UUID
+  name: String
+  bic: String
+  account_number: String
+}
+
+Table(Category, "Категория") {
+  primary_key(id): UUID
+  name: String
+  description: String
+}
+
+Table(Status, "Статус транзакции") {
+  primary_key(id): UUID
+  name: String
+}
+
+' RELATIONSHIPS
+User ||--o{ Transaction : "создаёт"
+Transaction }o--|| Status : "имеет"
+Transaction }o--|| Recipient : "связан с"
+Transaction }o--|| Bank : "банк отправителя"
+Recipient }o--|| Bank : "банк получателя"
+Recipient }o--|| Category : "категория"
+@enduml
