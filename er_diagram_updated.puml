@@ -8,16 +8,25 @@ hide stereotypes
 Table(User, "Пользователь") {
   primary_key(id): UUID
   name: String
-  role: String
+  role_id: UUID
   inn: String
   phone: String
+  person_type_id: UUID
+  user_bank_id: UUID
+  user_account_number: String
+}
+
+Table(Role, "Роль в системе(user / admin)") {
+  primary_key(id): UUID
+  name: String
 }
 
 Table(Transaction, "Финансовая операция") {
   primary_key(id): UUID
-  user_id: UUID
-  type: String
-  amount: BigDecimal
+  created_by_user_id: UUID
+  transaction_type_id: UUID
+  actor_user_id: UUID
+    amount: BigDecimal
   status_id: UUID
   recipient_id: UUID
   bank_from_id: UUID
@@ -26,7 +35,7 @@ Table(Transaction, "Финансовая операция") {
   comment: String
 }
 
-Table(Recipient, "Получатель") {
+Table(Recipient, "Контрагент") {
   primary_key(id): UUID
   inn: String
   phone: String
@@ -53,10 +62,25 @@ Table(Status, "Статус транзакции") {
   name: String
 }
 
+Table(PersonType, "Тип лица") {
+  primary_key(id): UUID
+  name: String
+}
+
+Table(TransactionType, "Тип транзакции") {
+  primary_key(id): UUID
+  name: String
+}
+
 ' RELATIONSHIPS
+User }o--|| Role : "роль"
+User }o--|| Bank : "банк по умолчанию"
+User }o--|| PersonType : "тип лица"
 User ||--o{ Transaction : "создаёт"
-Transaction }o--|| Status : "имеет"
-Transaction }o--|| Recipient : "связан с"
+Transaction }o--|| User : "участник"
+Transaction }o--|| TransactionType : "тип"
+Transaction }o--|| Status : "статус"
+Transaction }o--|| Recipient : "контрагент"
 Transaction }o--|| Bank : "банк отправителя"
 Recipient }o--|| Bank : "банк получателя"
 Recipient }o--|| Category : "категория"
