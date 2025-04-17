@@ -74,14 +74,13 @@ Table(TransactionType, "Тип транзакции") {
 
 ' RELATIONSHIPS
 User }o--|| Role : "роль"
-User }o--|| Bank : "банк по умолчанию"
+User }o--|| Bank : "банк пользователя"
 User }o--|| PersonType : "тип лица"
 User ||--o{ Transaction : "создаёт"
-Transaction }o--|| User : "участник"
+Transaction }o--|| User : "Пользователь"
 Transaction }o--|| TransactionType : "тип"
 Transaction }o--|| Status : "статус"
 Transaction }o--|| Recipient : "контрагент"
-Transaction }o--|| Bank : "банк отправителя"
-Recipient }o--|| Bank : "банк получателя"
+Recipient }o--|| Bank : "банк контрагента"
 Recipient }o--|| Category : "категория"
 @enduml
