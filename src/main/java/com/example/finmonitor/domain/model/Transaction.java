@@ -17,7 +17,7 @@ public class Transaction extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", nullable = false)
-    private User createdBy;
+    private User createdByUser;
 
     @Column(nullable = false)
     private OffsetDateTime timestamp;

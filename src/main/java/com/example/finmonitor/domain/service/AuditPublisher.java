@@ -33,7 +33,7 @@ public class AuditPublisher {
         log.setId(UUID.randomUUID());
         log.setEntityName("Transaction");
         log.setEntityId(tx.getId());
-        User user = tx.getCreatedBy();
+        User user = tx.getCreatedByUser();
         log.setChangedBy(user);
         log.setTimestamp(OffsetDateTime.now());
         log.setChanges("{\"action\": \"" + action + "\"}");

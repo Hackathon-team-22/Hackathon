@@ -1,45 +1,82 @@
 -- src/main/resources/db/migration/V1__Init.sql
 
--- 1. Справочники
-
+-- 1. Справочники (с полями аудита)
 CREATE TABLE users (
     id UUID PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(50) NOT NULL
+    role VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_by UUID NULL,
+    modified_by UUID NULL,
+    CONSTRAINT fk_users_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_users_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
 CREATE TABLE party_type (
     id UUID PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_by UUID NULL,
+    modified_by UUID NULL,
+    CONSTRAINT fk_pt_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_pt_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
 CREATE TABLE transaction_type (
     id UUID PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_by UUID NULL,
+    modified_by UUID NULL,
+    CONSTRAINT fk_tt_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_tt_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
 CREATE TABLE status (
     id UUID PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_by UUID NULL,
+    modified_by UUID NULL,
+    CONSTRAINT fk_status_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_status_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
 CREATE TABLE bank (
     id UUID PRIMARY KEY,
     name VARCHAR(200) NOT NULL,
-    swift_code VARCHAR(20)
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_by UUID NULL,
+    modified_by UUID NULL,
+    CONSTRAINT fk_bank_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_bank_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
 CREATE TABLE category (
     id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE
+    name VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_by UUID NULL,
+    modified_by UUID NULL,
+    CONSTRAINT fk_cat_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_cat_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
--- 2. Основная таблица транзакций
-
+-- 2. Основная таблица транзакций (с audit полями)
 CREATE TABLE transaction (
     id UUID PRIMARY KEY,
     created_by_user_id UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    created_by UUID NULL,
+    modified_by UUID NULL,
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
     party_type_id UUID NOT NULL REFERENCES party_type(id),
     transaction_type_id UUID NOT NULL REFERENCES transaction_type(id),
@@ -52,11 +89,12 @@ CREATE TABLE transaction (
     amount NUMERIC(18,5) NOT NULL,
     receiver_tin CHAR(11) NOT NULL,
     receiver_phone VARCHAR(12) NOT NULL,
-    comment TEXT
+    comment TEXT,
+    CONSTRAINT fk_tx_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_tx_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
--- 3. Аудит изменений
-
+-- 3. Таблица аудита изменений
 CREATE TABLE audit_log (
     id UUID PRIMARY KEY,
     entity_name VARCHAR(100) NOT NULL,
@@ -67,7 +105,6 @@ CREATE TABLE audit_log (
 );
 
 -- 4. Индексы для фильтрации
-
 CREATE INDEX idx_tx_timestamp       ON transaction(timestamp);
 CREATE INDEX idx_tx_status          ON transaction(status_id);
 CREATE INDEX idx_tx_bank_sender     ON transaction(bank_sender_id);
@@ -77,15 +114,12 @@ CREATE INDEX idx_tx_tin             ON transaction(receiver_tin);
 CREATE INDEX idx_tx_amount          ON transaction(amount);
 
 -- 5. Заполнение справочников (пример)
-
 INSERT INTO party_type (id, name) VALUES
   (gen_random_uuid(), 'Physical'),
   (gen_random_uuid(), 'Legal');
-
 INSERT INTO transaction_type (id, name) VALUES
   (gen_random_uuid(), 'Credit'),
   (gen_random_uuid(), 'Debit');
-
 INSERT INTO status (id, name) VALUES
   (gen_random_uuid(), 'New'),
   (gen_random_uuid(), 'Confirmed'),
