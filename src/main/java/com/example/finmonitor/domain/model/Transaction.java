@@ -2,7 +2,10 @@ package com.example.finmonitor.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -13,6 +16,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Transaction extends BaseEntity {
     @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     @ManyToOne
@@ -20,7 +29,7 @@ public class Transaction extends BaseEntity {
     private User createdByUser;
 
     @Column(nullable = false)
-    private OffsetDateTime timestamp;
+    private LocalDateTime timestamp;
 
     @ManyToOne
     @JoinColumn(name = "party_type_id", nullable = false)

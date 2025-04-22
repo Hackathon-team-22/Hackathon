@@ -5,9 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class FinMonitorApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(FinMonitorApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(FinMonitorApplication.class, args);
+    }
 }

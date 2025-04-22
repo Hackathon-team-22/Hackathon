@@ -69,7 +69,7 @@ CREATE TABLE category (
     CONSTRAINT fk_cat_modified_by FOREIGN KEY (modified_by) REFERENCES users(id)
 );
 
--- 2. Основная таблица транзакций (с audit полями)
+-- 2. Основная таблица транзакций (с audit-полями)
 CREATE TABLE transaction (
     id UUID PRIMARY KEY,
     created_by_user_id UUID NOT NULL REFERENCES users(id),
@@ -87,7 +87,7 @@ CREATE TABLE transaction (
     account_receiver VARCHAR(34) NOT NULL,
     category_id UUID NOT NULL REFERENCES category(id),
     amount NUMERIC(18,5) NOT NULL,
-    receiver_tin CHAR(11) NOT NULL,
+    receiver_tin VARCHAR(11) NOT NULL,
     receiver_phone VARCHAR(12) NOT NULL,
     comment TEXT,
     CONSTRAINT fk_tx_created_by FOREIGN KEY (created_by) REFERENCES users(id),
@@ -101,7 +101,7 @@ CREATE TABLE audit_log (
     entity_id UUID NOT NULL,
     changed_by_user_id UUID NOT NULL REFERENCES users(id),
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-    changes JSONB NOT NULL
+    changes TEXT NOT NULL
 );
 
 -- 4. Индексы для фильтрации
@@ -117,9 +117,11 @@ CREATE INDEX idx_tx_amount          ON transaction(amount);
 INSERT INTO party_type (id, name) VALUES
   (gen_random_uuid(), 'Physical'),
   (gen_random_uuid(), 'Legal');
+
 INSERT INTO transaction_type (id, name) VALUES
   (gen_random_uuid(), 'Credit'),
   (gen_random_uuid(), 'Debit');
+
 INSERT INTO status (id, name) VALUES
   (gen_random_uuid(), 'New'),
   (gen_random_uuid(), 'Confirmed'),

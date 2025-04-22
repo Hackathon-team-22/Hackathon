@@ -2,6 +2,9 @@ package com.example.finmonitor.domain.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -12,6 +15,12 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AuditLog {
     @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
+    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
     @Column(name = "entity_name", nullable = false)
@@ -22,11 +31,11 @@ public class AuditLog {
 
     @ManyToOne
     @JoinColumn(name = "changed_by_user_id", nullable = false)
-    private User changedBy;
+    private User changedByUser;
 
     @Column(nullable = false)
-    private OffsetDateTime timestamp;
+    private LocalDateTime timestamp;
 
-    @Column(columnDefinition = "JSONB", nullable = false)
+    @Column(name = "changes", nullable = false, columnDefinition = "TEXT")
     private String changes;
 }

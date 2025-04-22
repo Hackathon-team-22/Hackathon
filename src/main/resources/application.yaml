@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: financial-monitoring
+
+  datasource:
+    url: jdbc:postgresql://localhost:54320/fin_monitoring
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  flyway:
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: Fh8eQ2vPp6uKx7MvR0yIzjQ1WxmYzAbC3dEfGhIjKlM=
+  expiration-ms: 3600000

@@ -3,14 +3,15 @@ package com.example.finmonitor.api;
 import com.example.finmonitor.security.JwtProvider;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Контроллер аутентификации:
@@ -36,11 +37,17 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody @Valid AuthRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
-        String token = jwtProvider.generateToken(authentication);
-        return ResponseEntity.ok(Map.of("accessToken", token));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+            );
+            String token = jwtProvider.generateToken(authentication);
+            return ResponseEntity.ok(Map.of("accessToken", token));
+        } catch (AuthenticationException ex) {
+            // При неверных логине/пароле возвращаем 401
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid username or password"));
+        }
     }
 
     /**
@@ -50,10 +57,16 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> body) {
         String refreshToken = body.get("refreshToken");
         if (refreshToken == null || refreshToken.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "refreshToken is required"));
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "refreshToken is required"));
         }
-        String token = jwtProvider.refreshToken(refreshToken);
-        return ResponseEntity.ok(Map.of("accessToken", token));
+        try {
+            String token = jwtProvider.refreshToken(refreshToken);
+            return ResponseEntity.ok(Map.of("accessToken", token));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Invalid refresh token"));
+        }
     }
 
     /**
