@@ -4,12 +4,11 @@ import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.repository.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class FilterTransactionsServiceTest {
@@ -30,12 +30,10 @@ class FilterTransactionsServiceTest {
     }
 
     @Test
-    void execute_callsRepositoryAndReturnsPage() {
+    void execute_callsFindAllWithCorrectArguments() {
         Transaction tx = new Transaction();
         Page<Transaction> page = new PageImpl<>(List.of(tx));
-        when(transactionRepository.filterTransactions(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)
-        )).thenReturn(page);
+        when(transactionRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
 
         Page<Transaction> result = filterService.execute(
                 UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(),
@@ -44,8 +42,6 @@ class FilterTransactionsServiceTest {
         );
 
         assertSame(page, result);
-        verify(transactionRepository).filterTransactions(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(Pageable.class)
-        );
+        verify(transactionRepository).findAll(any(Specification.class), any(Pageable.class));
     }
 }

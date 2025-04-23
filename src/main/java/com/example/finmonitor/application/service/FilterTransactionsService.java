@@ -2,6 +2,7 @@ package com.example.finmonitor.application.service;
 
 import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.repository.TransactionRepository;
+import com.example.finmonitor.domain.spec.TransactionSpecification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +15,8 @@ import java.util.UUID;
 @Service
 public class FilterTransactionsService {
 
-    @Autowired private TransactionRepository transactionRepository;
+    @Autowired
+    private TransactionRepository transactionRepository;
 
     public Page<Transaction> execute(
             UUID bankSenderId,
@@ -29,17 +31,12 @@ public class FilterTransactionsService {
             UUID categoryId,
             Pageable pageable
     ) {
-        return transactionRepository.filterTransactions(
-                bankSenderId,
-                bankReceiverId,
-                fromDate,
-                toDate,
-                statusId,
-                receiverTin,
-                minAmount,
-                maxAmount,
-                transactionTypeId,
-                categoryId,
+        return transactionRepository.findAll(
+                TransactionSpecification.withFilters(
+                        bankSenderId, bankReceiverId, fromDate, toDate,
+                        statusId, receiverTin, minAmount, maxAmount,
+                        transactionTypeId, categoryId
+                ),
                 pageable
         );
     }

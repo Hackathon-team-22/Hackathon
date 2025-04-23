@@ -31,19 +31,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
           AND (:transactionTypeId IS NULL OR t.transactionType.id = :transactionTypeId)
           AND (:categoryId IS NULL OR t.category.id = :categoryId)
     """)
-    Page<Transaction> filterTransactions(
-            @Param("bankSenderId") UUID bankSenderId,
-            @Param("bankReceiverId") UUID bankReceiverId,
-            @Param("fromDate") LocalDateTime fromDate,
-            @Param("toDate") LocalDateTime toDate,
-            @Param("statusId") UUID statusId,
-            @Param("receiverTin") String receiverTin,
-            @Param("minAmount") BigDecimal minAmount,
-            @Param("maxAmount") BigDecimal maxAmount,
-            @Param("transactionTypeId") UUID transactionTypeId,
-            @Param("categoryId") UUID categoryId,
-            Pageable pageable
-    );
 
     long countByTimestampBetween(LocalDate fromDate, LocalDate toDate);
 

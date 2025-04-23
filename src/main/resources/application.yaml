@@ -8,6 +8,7 @@ logging:
   level:
     root: INFO
     org.springframework.security: DEBUG
+    org.springframework.test.context.support.AnnotationConfigContextLoaderUtils: WARN
 
 spring:
   application:
