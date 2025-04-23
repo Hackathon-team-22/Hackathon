@@ -1,15 +1,15 @@
 package com.example.finmonitor.api;
 
 import com.example.finmonitor.application.service.DashboardService;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-
 @RestController
-    @RequestMapping("/dashboard")
+@RequestMapping("/dashboard")
 public class DashboardController {
 
     @Autowired
@@ -19,7 +19,13 @@ public class DashboardController {
      * Динамика по количеству транзакций в разрезе периодов (week/month/quarter/year)
      */
     @GetMapping("/transactions/count")
-    public List<Map<String, Object>> countByPeriod(@RequestParam String period) {
+    public List<Map<String, Object>> countByPeriod(
+            @Parameter(
+                    description = "Период выборки данных: week (последняя неделя), month (последний месяц), quarter (последний квартал), year (последний год). По умолчанию week.",
+                    example = "week"
+            )
+            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    ) {
         return dashboardService.countByPeriod(period);
     }
 
@@ -27,7 +33,13 @@ public class DashboardController {
      * Динамика по типу транзакции (debit/credit)
      */
     @GetMapping("/transactions/by-type")
-    public Map<String, List<Map<String, Object>>> byType(@RequestParam String period) {
+    public Map<String, List<Map<String, Object>>> byType(
+            @Parameter(
+                    description = "Период выборки данных: week, month, quarter, year. По умолчанию week.",
+                    example = "week"
+            )
+            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    ) {
         return dashboardService.byType(period);
     }
 
@@ -35,7 +47,13 @@ public class DashboardController {
      * Сравнение суммы поступлений и списаний
      */
     @GetMapping("/transactions/sums")
-    public Map<String, Object> sumComparison(@RequestParam String period) {
+    public Map<String, Object> sumComparison(
+            @Parameter(
+                    description = "Период выборки данных: week, month, quarter, year. По умолчанию week.",
+                    example = "week"
+            )
+            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    ) {
         return dashboardService.sumComparison(period);
     }
 
@@ -43,7 +61,13 @@ public class DashboardController {
      * Количество проведённых и отменённых транзакций
      */
     @GetMapping("/transactions/status-count")
-    public Map<String, Long> statusCount(@RequestParam String period) {
+    public Map<String, Long> statusCount(
+            @Parameter(
+                    description = "Период выборки данных: week, month, quarter, year. По умолчанию week.",
+                    example = "week"
+            )
+            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    ) {
         return dashboardService.statusCount(period);
     }
 
@@ -52,8 +76,16 @@ public class DashboardController {
      */
     @GetMapping("/transactions/by-bank")
     public List<Map<String, Object>> byBank(
-            @RequestParam String role,
-            @RequestParam String period
+            @Parameter(
+                    description = "Роль: sender (отправитель) или receiver (получатель).",
+                    example = "sender"
+            )
+            @RequestParam(name = "role") String role,
+            @Parameter(
+                    description = "Период выборки данных: week, month, quarter, year. По умолчанию week.",
+                    example = "week"
+            )
+            @RequestParam(name = "period", required = false, defaultValue = "week") String period
     ) {
         return dashboardService.byBank(role, period);
     }
@@ -63,8 +95,16 @@ public class DashboardController {
      */
     @GetMapping("/transactions/by-category")
     public List<Map<String, Object>> byCategory(
-            @RequestParam String type,
-            @RequestParam String period
+            @Parameter(
+                    description = "Тип транзакции: debit или credit.",
+                    example = "debit"
+            )
+            @RequestParam(name = "type") String type,
+            @Parameter(
+                    description = "Период выборки данных: week, month, quarter, year. По умолчанию week.",
+                    example = "week"
+            )
+            @RequestParam(name = "period", required = false, defaultValue = "week") String period
     ) {
         return dashboardService.byCategory(type, period);
     }

@@ -17,7 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,17 +29,27 @@ import java.util.UUID;
 @RequestMapping("/transactions")
 public class TransactionController {
 
-    @Autowired private CreateTransactionService createService;
-    @Autowired private GetTransactionService getService;
-    @Autowired private UpdateTransactionService updateService;
-    @Autowired private DeleteTransactionService deleteService;
-    @Autowired private FilterTransactionsService filterService;
-    @Autowired private UserRepository userRepository;
+    @Autowired
+    private CreateTransactionService createService;
+    @Autowired
+    private GetTransactionService getService;
+    @Autowired
+    private UpdateTransactionService updateService;
+    @Autowired
+    private DeleteTransactionService deleteService;
+    @Autowired
+    private FilterTransactionsService filterService;
+    @Autowired
+    private UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<TransactionResponse> create(@Valid @RequestBody TransactionRequest req,
-                                                      Authentication authentication) {
-        String username = authentication.getName();
+    public ResponseEntity<TransactionResponse> create(@Valid @RequestBody TransactionRequest req) {
+        var auth = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("Unauthorized");
+        }
+        String username = auth.getName();
         User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new IllegalArgumentException("User not found: " + username);
