@@ -1,3 +1,14 @@
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+
 spring:
   application:
     name: financial-monitoring
@@ -19,6 +30,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+server:
+  port: 8085
 
 jwt:
   secret: Fh8eQ2vPp6uKx7MvR0yIzjQ1WxmYzAbC3dEfGhIjKlM=
