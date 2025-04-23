@@ -22,11 +22,18 @@ public class UpdateTransactionService {
 
     @Transactional
     public Transaction execute(UUID transactionId, Transaction updatedData) {
-        Transaction existingTx = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaction не найдена"));
 
+        // Получаем существующую транзакцию
+        Transaction existingTx = transactionRepository.findById(transactionId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Transaction not found: " + transactionId)
+                );
+
+        // Проверяем, можно ли редактировать
         if (immutableStatuses.contains(existingTx.getStatus().getName())) {
-            throw new IllegalStateException("Транзакция с данным статусом не может быть изменена");
+            throw new IllegalStateException(
+                    "Транзакция со статусом '" + existingTx.getStatus().getName() + "' не может быть отредактирована"
+            );
         }
 
         // Обновляем допустимые для редактирования поля
@@ -41,6 +48,7 @@ public class UpdateTransactionService {
         existingTx.setCategory(updatedData.getCategory());
         existingTx.setReceiverPhone(updatedData.getReceiverPhone());
 
+        // Сохраняем изменения и пишем в аудит
         Transaction savedTx = transactionRepository.save(existingTx);
         auditPublisher.publishUpdate(savedTx);
 

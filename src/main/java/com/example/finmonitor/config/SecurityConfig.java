@@ -105,7 +105,7 @@ public class SecurityConfig {
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 
                         // Authenticated endpoints
-                        .requestMatchers("/dashboard/**", "/transactions/**").authenticated()
+                        .requestMatchers("/dashboard/**", "/transactions/**", "/export/**").authenticated()
 
                         // Всё остальное — запрещено
                         .anyRequest().denyAll()

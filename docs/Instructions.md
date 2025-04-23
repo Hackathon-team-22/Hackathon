@@ -175,3 +175,43 @@ curl -X GET "http://localhost:8085/dashboard/transactions/status-count" \
   -H "Authorization: Bearer eyJhbGciOi..."
 ```
 
+## 6. Экспорт CSV
+
+Теперь появились два новых экспортных эндпоинта:
+
+### 6.1 Экспорт транзакций
+
+- **GET** `/export/transactions`
+- **Produces:** `text/csv`
+- **Параметры** (все опциональны, те же, что и для фильтрации):
+  ```
+  bankSenderId (UUID)
+  bankReceiverId (UUID)
+  fromDate, toDate (ISO: 2025-04-01T00:00:00)
+  statusId (UUID)
+  receiverTin (String)
+  minAmount, maxAmount (BigDecimal)
+  transactionTypeId (UUID)
+  categoryId (UUID)
+  ```
+- **Пример curl**:
+  ```bash
+  curl -X GET "http://localhost:8085/export/transactions?minAmount=100&maxAmount=500" \
+    -H "Authorization: Bearer eyJhbGciOi..." \
+    -H "Accept: text/csv" \
+    -o transactions.csv
+  ```
+
+### 6.2 Экспорт аудита
+
+- **GET** `/export/audit`
+- **Produces:** `text/csv`
+- **Без параметров** — выгружается весь журнал аудита.
+- **Пример curl**:
+  ```bash
+  curl -X GET http://localhost:8085/export/audit \
+    -H "Authorization: Bearer eyJhbGciOi..." \
+    -H "Accept: text/csv" \
+    -o audit_log.csv
+  ```
+

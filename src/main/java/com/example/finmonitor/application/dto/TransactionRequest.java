@@ -51,10 +51,11 @@ public class TransactionRequest {
 
     @NotBlank
     @Size(min = 11, max = 11)
+    @Pattern(regexp = "\\d{11}", message = "ИНН должен состоять из 11 цифр")
     private String receiverTin;
 
     @NotBlank
-    @Pattern(regexp = "^(\\+7|8)\\d{10}$")
+    @Pattern(regexp = "^(\\+7|8)\\d{10}$", message = "Телефон должен быть в формате 8XXXXXXXXXX или +7XXXXXXXXXX")
     private String receiverPhone;
 
     private String comment;
