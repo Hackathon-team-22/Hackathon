@@ -23,4 +23,9 @@ public class TransactionType extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    public TransactionType(String name) {
+        this.name = name;
+    }
+
 }

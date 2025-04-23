@@ -23,4 +23,9 @@ public class Status extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    public Status(String name) {
+        this.name = name;
+    }
+
 }

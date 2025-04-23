@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PartyType extends BaseEntity {
+
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
@@ -23,4 +24,10 @@ public class PartyType extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+
+    public PartyType(String name) {
+        this.name = name;
+    }
+
 }

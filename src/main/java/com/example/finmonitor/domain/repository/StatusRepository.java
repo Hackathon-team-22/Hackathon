@@ -9,10 +9,11 @@ import java.util.UUID;
 
 @Repository
 public interface StatusRepository extends JpaRepository<Status, UUID> {
-    /**
-     * Находит статус по его наименованию.
-     * @param name название статуса (например, "Deleted")
-     * @return Optional со статусом, или пустой, если не найден
-     */
     Optional<Status> findByName(String name);
+
+    default UUID getOrCreateByName(String name) {
+        return findByName(name)
+                .map(Status::getId)
+                .orElseGet(() -> save(new Status(name)).getId());
+    }
 }
