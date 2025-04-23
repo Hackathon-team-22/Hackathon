@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionType extends BaseEntity {
+public class TransactionType {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(

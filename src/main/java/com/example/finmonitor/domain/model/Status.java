@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Status extends BaseEntity {
+public class Status {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(

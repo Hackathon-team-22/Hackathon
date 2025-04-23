@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Category extends BaseEntity {
+public class Category {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(

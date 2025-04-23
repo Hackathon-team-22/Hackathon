@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Transaction extends BaseEntity {
+public class Transaction {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(

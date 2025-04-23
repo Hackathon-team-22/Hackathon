@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PartyType extends BaseEntity {
+public class PartyType {
 
     @Id
     @GeneratedValue(generator = "UUID")
