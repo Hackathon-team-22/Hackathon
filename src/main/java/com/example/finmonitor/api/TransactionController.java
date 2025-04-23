@@ -1,8 +1,8 @@
 // src/main/java/com/example/finmonitor/api/TransactionController.java
 package com.example.finmonitor.api;
 
-import com.example.finmonitor.api.dto.TransactionRequest;
-import com.example.finmonitor.api.dto.TransactionResponse;
+import com.example.finmonitor.application.dto.TransactionRequest;
+import com.example.finmonitor.application.dto.TransactionResponse;
 import com.example.finmonitor.application.service.CreateTransactionService;
 import com.example.finmonitor.application.service.DeleteTransactionService;
 import com.example.finmonitor.application.service.FilterTransactionsService;

@@ -1,4 +1,4 @@
-package com.example.finmonitor.api.dto;
+package com.example.finmonitor.application.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
