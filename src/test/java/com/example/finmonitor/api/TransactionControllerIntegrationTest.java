@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -90,34 +91,6 @@ public class TransactionControllerIntegrationTest {
     @Test
     void createTransaction_shouldReturn201() throws Exception {
         String token = obtainAccessToken(USERNAME, PASSWORD);
-        String requestJson = """
-                {
-                  "timestamp": "2025-04-23T12:00:00",
-                  "partyTypeId": "" + partyTypeId + "",
-                  "transactionTypeId": "" + typeId + "",
-                  "statusId": "" + statusId + "",
-                  "bankSenderId": "" + bankId + "",
-                  "bankReceiverId": "<bank_id>",
-                  "accountSender": "40817810000000000001",
-                  "accountReceiver": "40817810000000000002",
-                  "categoryId": "" + categoryId + "",
-                  "amount": 123.45,
-                  "receiverTin": "12345678901",
-                  "receiverPhone": "+71234567890",
-                  "comment": "Тестовая операция"
-                }
-                """;
-
-        mockMvc.perform(post("/transactions")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    void getTransactions_shouldReturn200() throws Exception {
-        String token = obtainAccessToken(USERNAME, PASSWORD);
 
         String requestJson = """
                 {
@@ -141,12 +114,44 @@ public class TransactionControllerIntegrationTest {
                         .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestJson))
+                .andDo(print())
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void getTransactions_shouldReturn200() throws Exception {
+        String token = obtainAccessToken(USERNAME, PASSWORD);
+
+        String requestJson = """
+                {
+                  "timestamp": "2025-04-23T12:00:00",
+                  "partyTypeId": "%s",
+                  "transactionTypeId": "%s",
+                  "statusId": "%s",
+                  "bankSenderId": "%s",
+                  "bankReceiverId": "%s",
+                  "accountSender": "40817810000000000001",
+                  "accountReceiver": "40817810000000000002",
+                  "categoryId": "%s",
+                  "amount": 100.0,
+                  "receiverTin": "12345678901",
+                  "receiverPhone": "+71234567890",
+                  "comment": "Для фильтрации"
+                }
+                """.formatted(partyTypeId, typeId, statusId, bankId, bankId, categoryId);
+
+        mockMvc.perform(post("/transactions")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/transactions")
                         .header("Authorization", "Bearer " + token))
+                .andDo(print())
                 .andExpect(status().isOk());
     }
+
 
     @Test
     void deleteTransaction_withForbiddenStatus_shouldReturn409() throws Exception {

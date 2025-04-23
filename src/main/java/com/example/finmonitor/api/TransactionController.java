@@ -8,18 +8,16 @@ import com.example.finmonitor.application.service.DeleteTransactionService;
 import com.example.finmonitor.application.service.FilterTransactionsService;
 import com.example.finmonitor.application.service.GetTransactionService;
 import com.example.finmonitor.application.service.UpdateTransactionService;
-import com.example.finmonitor.domain.model.Transaction;
-import com.example.finmonitor.domain.model.PartyType;
-import com.example.finmonitor.domain.model.TransactionType;
-import com.example.finmonitor.domain.model.Status;
-import com.example.finmonitor.domain.model.Bank;
-import com.example.finmonitor.domain.model.Category;
+import com.example.finmonitor.domain.model.*;
+import com.example.finmonitor.domain.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,13 +35,23 @@ public class TransactionController {
     @Autowired private UpdateTransactionService updateService;
     @Autowired private DeleteTransactionService deleteService;
     @Autowired private FilterTransactionsService filterService;
+    @Autowired private UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity<TransactionResponse> create(@Validated @RequestBody TransactionRequest req) {
+    public ResponseEntity<TransactionResponse> create(@Valid @RequestBody TransactionRequest req,
+                                                      Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new IllegalArgumentException("User not found: " + username);
+        }
+        UUID userId = user.getId();
+
         Transaction tx = mapToEntity(req);
-        Transaction saved = createService.execute(tx, req.getCreatedByUserId());
+        Transaction saved = createService.execute(tx, userId);
         return new ResponseEntity<>(mapToResponse(saved), HttpStatus.CREATED);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<TransactionResponse> getById(@PathVariable UUID id) {

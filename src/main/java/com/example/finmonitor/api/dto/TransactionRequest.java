@@ -14,7 +14,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class TransactionRequest {
 
-    @NotNull
     private UUID createdByUserId;
 
     @NotNull

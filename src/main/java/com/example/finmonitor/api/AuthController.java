@@ -1,5 +1,8 @@
 package com.example.finmonitor.api;
 
+import com.example.finmonitor.api.dto.RegisterRequest;
+import com.example.finmonitor.domain.model.User;
+import com.example.finmonitor.domain.repository.UserRepository;
 import com.example.finmonitor.security.JwtProvider;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -24,12 +28,34 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager,
-                          JwtProvider jwtProvider) {
+                          JwtProvider jwtProvider, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtProvider = jwtProvider;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("User already exists");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole("USER");
+
+        userRepository.save(user);
+
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     /**
