@@ -1,15 +1,18 @@
-// src/main/java/com/example/finmonitor/api/TransactionController.java
 package com.example.finmonitor.api;
 
 import com.example.finmonitor.application.dto.TransactionRequest;
 import com.example.finmonitor.application.dto.TransactionResponse;
-import com.example.finmonitor.application.service.CreateTransactionService;
-import com.example.finmonitor.application.service.DeleteTransactionService;
-import com.example.finmonitor.application.service.FilterTransactionsService;
-import com.example.finmonitor.application.service.GetTransactionService;
-import com.example.finmonitor.application.service.UpdateTransactionService;
+import com.example.finmonitor.application.service.*;
 import com.example.finmonitor.domain.model.*;
 import com.example.finmonitor.domain.repository.UserRepository;
+import com.example.finmonitor.api.dto.ErrorResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,7 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -27,64 +30,85 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/transactions")
+@Tag(name = "Transactions", description = "Операции с финансовыми транзакциями")
+@SecurityRequirement(name = "BearerAuth")
 public class TransactionController {
 
-    @Autowired
-    private CreateTransactionService createService;
-    @Autowired
-    private GetTransactionService getService;
-    @Autowired
-    private UpdateTransactionService updateService;
-    @Autowired
-    private DeleteTransactionService deleteService;
-    @Autowired
-    private FilterTransactionsService filterService;
-    @Autowired
-    private UserRepository userRepository;
+    @Autowired private CreateTransactionService createService;
+    @Autowired private GetTransactionService getService;
+    @Autowired private UpdateTransactionService updateService;
+    @Autowired private DeleteTransactionService deleteService;
+    @Autowired private FilterTransactionsService filterService;
+    @Autowired private UserRepository userRepository;
 
     @PostMapping
+    @Operation(summary = "Создать транзакцию",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Транзакция успешно создана",
+                            content = @Content(schema = @Schema(implementation = TransactionResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            })
     public ResponseEntity<TransactionResponse> create(@Valid @RequestBody TransactionRequest req) {
-        var auth = org.springframework.security.core.context.SecurityContextHolder
-                .getContext().getAuthentication();
+        var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new RuntimeException("Unauthorized");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
         String username = auth.getName();
         User user = userRepository.findByUsername(username);
         if (user == null) {
-            throw new IllegalArgumentException("User not found: " + username);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-        UUID userId = user.getId();
-
         Transaction tx = mapToEntity(req);
-        Transaction saved = createService.execute(tx, userId);
+        Transaction saved = createService.execute(tx, user.getId());
         return new ResponseEntity<>(mapToResponse(saved), HttpStatus.CREATED);
     }
 
-
     @GetMapping("/{id}")
+    @Operation(summary = "Получить транзакцию по ID",
+            parameters = @Parameter(name = "id", description = "ID транзакции", required = true),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешный ответ",
+                            content = @Content(schema = @Schema(implementation = TransactionResponse.class))),
+                    @ApiResponse(responseCode = "404", description = "Транзакция не найдена")
+            })
     public ResponseEntity<TransactionResponse> getById(@PathVariable UUID id) {
         Transaction tx = getService.execute(id);
         return ResponseEntity.ok(mapToResponse(tx));
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Обновить транзакцию",
+            parameters = @Parameter(name = "id", description = "ID транзакции", required = true),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешное обновление",
+                            content = @Content(schema = @Schema(implementation = TransactionResponse.class)))
+            })
     public ResponseEntity<TransactionResponse> update(
             @PathVariable UUID id,
-            @Validated @RequestBody TransactionRequest req
-    ) {
+            @Valid @RequestBody TransactionRequest req) {
         Transaction tx = mapToEntity(req);
         Transaction updated = updateService.execute(id, tx);
         return ResponseEntity.ok(mapToResponse(updated));
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Удалить транзакцию",
+            parameters = @Parameter(name = "id", description = "ID транзакции", required = true),
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Успешное удаление"),
+                    @ApiResponse(responseCode = "404", description = "Транзакция не найдена")
+            })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
         deleteService.execute(id);
     }
 
     @GetMapping
+    @Operation(summary = "Список транзакций с фильтрацией и пагинацией",
+            responses = @ApiResponse(responseCode = "200", description = "Страница с результатами",
+                    content = @Content(schema = @Schema(implementation = TransactionResponse.class)))
+    )
     public Page<TransactionResponse> list(
             @RequestParam(required = false) UUID bankSenderId,
             @RequestParam(required = false) UUID bankReceiverId,

@@ -1,9 +1,16 @@
 package com.example.finmonitor.api;
 
-import com.example.finmonitor.application.dto.RegisterRequest;
+import com.example.finmonitor.api.dto.*;
 import com.example.finmonitor.domain.model.User;
 import com.example.finmonitor.domain.repository.UserRepository;
 import com.example.finmonitor.security.JwtProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,13 +22,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
-/**
- * Контроллер аутентификации:
- * - POST /auth/login  — логин по username/password, возвращает accessToken
- * - POST /auth/refresh — обновление accessToken по refreshToken
- */
+@Tag(name = "Auth", description = "Аутентификация и регистрация пользователей")
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -31,10 +32,8 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager,
-                          JwtProvider jwtProvider, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(AuthenticationManager authenticationManager, JwtProvider jwtProvider, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtProvider = jwtProvider;
         this.userRepository = userRepository;
@@ -42,10 +41,22 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @SecurityRequirement(name = "")
+    @Operation(summary = "Регистрация нового пользователя",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RegisterRequest.class))
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Пользователь зарегистрирован",
+                            content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
+                    @ApiResponse(responseCode = "409", description = "Пользователь уже существует",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            })
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("User already exists");
+                    .body(new ErrorResponse("User already exists"));
         }
 
         User user = new User();
@@ -55,66 +66,61 @@ public class AuthController {
 
         userRepository.save(user);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new RegisterResponse("User registered successfully"));
     }
 
-    /**
-     * Вход в систему. При успехе возвращает JSON с accessToken.
-     */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@RequestBody @Valid AuthRequest request) {
+    @SecurityRequirement(name = "")
+    @Operation(summary = "Аутентификация пользователя",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            schema = @Schema(implementation = AuthRequest.class),
+                            examples = @ExampleObject(value = "{\"username\":\"user1\",\"password\":\"pass\"}")
+                    )
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешная аутентификация",
+                            content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Неверные учетные данные",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            })
+    public ResponseEntity<?> login(@RequestBody @Valid AuthRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-            );
+                    new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
             String token = jwtProvider.generateToken(authentication);
-            return ResponseEntity.ok(Map.of("accessToken", token));
+            return ResponseEntity.ok(new LoginResponse(token));
         } catch (AuthenticationException ex) {
-            // При неверных логине/пароле возвращаем 401
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid username or password"));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid username or password"));
         }
     }
 
-    /**
-     * Обновление токена. Принимает JSON { "refreshToken": "..." }.
-     */
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> body) {
-        String refreshToken = body.get("refreshToken");
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "refreshToken is required"));
+    @SecurityRequirement(name = "")
+    @Operation(summary = "Обновление access-токена по refresh-токену",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = TokenRefreshRequest.class))
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Токен успешно обновлён",
+                            content = @Content(schema = @Schema(implementation = LoginResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "Некорректный запрос",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+                    @ApiResponse(responseCode = "401", description = "Неверный refresh-токен",
+                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+            })
+    public ResponseEntity<?> refresh(@RequestBody TokenRefreshRequest request) {
+        if (request.getRefreshToken() == null || request.getRefreshToken().isEmpty()) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("refreshToken is required"));
         }
         try {
-            String token = jwtProvider.refreshToken(refreshToken);
-            return ResponseEntity.ok(Map.of("accessToken", token));
+            String token = jwtProvider.refreshToken(request.getRefreshToken());
+            return ResponseEntity.ok(new LoginResponse(token));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Invalid refresh token"));
-        }
-    }
-
-    /**
-     * DTO для запросов аутентификации.
-     */
-    public static class AuthRequest {
-        @jakarta.validation.constraints.NotBlank
-        private String username;
-        @jakarta.validation.constraints.NotBlank
-        private String password;
-
-        public String getUsername() {
-            return username;
-        }
-        public void setUsername(String username) {
-            this.username = username;
-        }
-        public String getPassword() {
-            return password;
-        }
-        public void setPassword(String password) {
-            this.password = password;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid refresh token"));
         }
     }
 }
