@@ -1,4 +1,3 @@
-// File: src/test/java/com/example/finmonitor/api/TransactionControllerUnitTest.java
 package com.example.finmonitor.api;
 
 import com.example.finmonitor.application.dto.TransactionRequest;

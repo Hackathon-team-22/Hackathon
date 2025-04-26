@@ -99,6 +99,7 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/favicon.ico",
                                 "/error"
+//                                ,"/dashboard/**", "/transactions/**", "/export/**"
                         ).permitAll()
 
                         // Spring Boot static resources

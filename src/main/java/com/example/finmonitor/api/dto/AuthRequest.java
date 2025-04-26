@@ -6,11 +6,11 @@ import jakarta.validation.constraints.NotBlank;
 @Schema(description = "Запрос авторизации пользователя")
 public class AuthRequest {
 
-    @Schema(description = "Имя пользователя", example = "user1", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Имя пользователя", example = "user", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
     private String username;
 
-    @Schema(description = "Пароль пользователя", example = "secret123", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Пароль пользователя", example = "password", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
     private String password;
 

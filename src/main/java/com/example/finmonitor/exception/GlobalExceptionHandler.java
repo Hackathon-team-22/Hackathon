@@ -14,6 +14,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.util.List;
@@ -68,6 +69,22 @@ public class GlobalExceptionHandler {
                 req.getRequestURI(),
                 errors
         );
+    }
+
+    /**
+     * Обрабатывает ситуацию, когда в @RequestParam передано недопустимое значение enum.
+     * Пример: period=INVALID
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex, HttpServletRequest req) {
+        String param = ex.getName();
+        Object value = ex.getValue();
+        String msg = String.format("Недопустимое значение параметра '%s': %s", param, value);
+        build(HttpStatus.METHOD_NOT_ALLOWED, msg, req);
+        return ResponseEntity
+                .badRequest()
+                .body(build(HttpStatus.METHOD_NOT_ALLOWED, msg, req));
     }
 
     @ExceptionHandler(DataAccessException.class)

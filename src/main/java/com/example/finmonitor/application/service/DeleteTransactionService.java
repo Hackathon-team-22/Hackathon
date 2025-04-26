@@ -20,7 +20,7 @@ public class DeleteTransactionService {
     @Autowired private AuditPublisher auditPublisher;
 
     private final Set<String> nonDeletableStatuses = Set.of(
-            "Подтвержденная", "В обработке", "Отменена", "Платеж выполнен", "Возврат");
+            "Confirmed", "Processing", "Cancelled", "Completed", "Returned");
 
     @Transactional
     public void execute(UUID transactionId) {
@@ -31,8 +31,8 @@ public class DeleteTransactionService {
             throw new IllegalStateException("Транзакция с данным статусом не может быть удалена");
         }
 
-        Status deletedStatus = statusRepository.findByName("Платеж удален")
-                .orElseThrow(() -> new IllegalArgumentException("Статус 'Платеж удален' не найден"));
+        Status deletedStatus = statusRepository.findByName("Deleted")
+                .orElseThrow(() -> new IllegalArgumentException("Статус 'Deleted' не найден"));
 
         existingTx.setStatus(deletedStatus);
         transactionRepository.save(existingTx);

@@ -1,101 +1,76 @@
 package com.example.finmonitor.api;
 
+import com.example.finmonitor.application.dto.dashboard.*;
+import com.example.finmonitor.application.enums.DashboardRole;
+import com.example.finmonitor.application.enums.Period;
+import com.example.finmonitor.application.enums.TxnType;
 import com.example.finmonitor.application.service.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/dashboard")
-@Tag(name = "Dashboard", description = "Аналитика и статистика транзакций")
 @SecurityRequirement(name = "BearerAuth")
 public class DashboardController {
 
     @Autowired
     private DashboardService dashboardService;
 
+    @Operation(summary = "1. Динамика по количеству транзакций за заданный период")
     @GetMapping("/transactions/count")
-    @Operation(summary = "Динамика количества транзакций по периодам",
-            responses = @ApiResponse(responseCode = "200", description = "Список агрегированных значений",
-                    content = @Content(schema = @Schema(implementation = Map.class)))
-    )
-    public List<Map<String, Object>> countByPeriod(
-            @Parameter(description = "Период: week, month, quarter, year", example = "week")
-            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    public ResponseEntity<List<CountByPeriodDto>> getCountByPeriod(
+            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
     ) {
-        return dashboardService.countByPeriod(period);
+        return ResponseEntity.ok(dashboardService.countByPeriod(period));
     }
 
-    @GetMapping("/transactions/by-type")
-    @Operation(summary = "Анализ по типу транзакции (debit/credit)",
-            responses = @ApiResponse(responseCode = "200", description = "Группировка по типу",
-                    content = @Content(schema = @Schema(implementation = Map.class)))
-    )
-    public Map<String, List<Map<String, Object>>> byType(
-            @Parameter(description = "Период", example = "week")
-            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    @Operation(summary = "2. Распределение по типу транзакции (Поступление/Списание)")
+    @GetMapping("/transactions/type")
+    public ResponseEntity<List<TransactionTypeDto>> getByTransactionType(
+            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
     ) {
-        return dashboardService.byType(period);
+        return ResponseEntity.ok(dashboardService.byTransactionType(period));
     }
 
-    @GetMapping("/transactions/sums")
-    @Operation(summary = "Сравнение сумм поступлений и списаний",
-            responses = @ApiResponse(responseCode = "200", description = "Суммы по категориям",
-                    content = @Content(schema = @Schema(implementation = Map.class)))
-    )
-    public Map<String, Object> sumComparison(
-            @Parameter(description = "Период", example = "month")
-            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    @Operation(summary = "3. Сравнение сумм поступлений и расходов за период")
+    @GetMapping("/transactions/compare")
+    public ResponseEntity<AmountComparisonDto> getAmountComparison(
+            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
     ) {
-        return dashboardService.sumComparison(period);
+        return ResponseEntity.ok(dashboardService.compareAmounts(period));
     }
 
-    @GetMapping("/transactions/status-count")
-    @Operation(summary = "Статистика по статусу транзакций",
-            responses = @ApiResponse(responseCode = "200", description = "Количество по статусам",
-                    content = @Content(schema = @Schema(implementation = Map.class)))
-    )
-    public Map<String, Long> statusCount(
-            @Parameter(description = "Период", example = "quarter")
-            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    @Operation(summary = "4. Количество транзакций по статусам за период")
+    @GetMapping("/transactions/status")
+    public ResponseEntity<List<ExecutionStatusDto>> getByStatus(
+            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
     ) {
-        return dashboardService.statusCount(period);
+        return ResponseEntity.ok(dashboardService.byStatus(period));
     }
 
-    @GetMapping("/transactions/by-bank")
-    @Operation(summary = "Распределение транзакций по банкам",
-            responses = @ApiResponse(responseCode = "200", description = "Агрегация по банкам",
-                    content = @Content(schema = @Schema(implementation = Map.class)))
-    )
-    public List<Map<String, Object>> byBank(
-            @Parameter(description = "Роль: sender или receiver", example = "sender")
-            @RequestParam(name = "role") String role,
-            @Parameter(description = "Период", example = "week")
-            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    @Operation(summary = "5. Статистика по банкам отправителей или получателей")
+    @GetMapping("/transactions/banks")
+    public ResponseEntity<List<BankStatDto>> getByBank(
+            @Parameter(description = "Роль банка (SENDER или RECEIVER)") @RequestParam @NotNull DashboardRole role,
+            @Parameter(description = "Период агрегации")       @RequestParam @NotNull Period period
     ) {
-        return dashboardService.byBank(role, period);
+        return ResponseEntity.ok(dashboardService.byBank(role, period));
     }
 
-    @GetMapping("/transactions/by-category")
-    @Operation(summary = "Статистика по категориям",
-            responses = @ApiResponse(responseCode = "200", description = "Агрегация по категориям",
-                    content = @Content(schema = @Schema(implementation = Map.class)))
-    )
-    public List<Map<String, Object>> byCategory(
-            @Parameter(description = "Тип транзакции: debit или credit", example = "debit")
-            @RequestParam(name = "type") String type,
-            @Parameter(description = "Период", example = "month")
-            @RequestParam(name = "period", required = false, defaultValue = "week") String period
+    @Operation(summary = "6. Статистика по категориям расходов/доходов")
+    @GetMapping("/transactions/categories")
+    public ResponseEntity<List<CategoryStatDto>> getByCategory(
+            @Parameter(description = "Тип транзакции (CREDIT или DEBIT)") @RequestParam @NotNull TxnType type,
+            @Parameter(description = "Период агрегации")                     @RequestParam @NotNull Period period
     ) {
-        return dashboardService.byCategory(type, period);
+        return ResponseEntity.ok(dashboardService.byCategory(type, period));
     }
+
 }

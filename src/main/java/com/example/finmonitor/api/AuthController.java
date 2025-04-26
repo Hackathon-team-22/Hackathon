@@ -6,7 +6,6 @@ import com.example.finmonitor.domain.repository.UserRepository;
 import com.example.finmonitor.security.JwtProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -76,8 +75,7 @@ public class AuthController {
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     required = true,
                     content = @Content(
-                            schema = @Schema(implementation = AuthRequest.class),
-                            examples = @ExampleObject(value = "{\"username\":\"user1\",\"password\":\"pass\"}")
+                            schema = @Schema(implementation = AuthRequest.class)
                     )
             ),
             responses = {
@@ -94,33 +92,6 @@ public class AuthController {
             return ResponseEntity.ok(new LoginResponse(token));
         } catch (AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid username or password"));
-        }
-    }
-
-    @PostMapping("/refresh")
-    @SecurityRequirement(name = "")
-    @Operation(summary = "Обновление access-токена по refresh-токену",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    required = true,
-                    content = @Content(schema = @Schema(implementation = TokenRefreshRequest.class))
-            ),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Токен успешно обновлён",
-                            content = @Content(schema = @Schema(implementation = LoginResponse.class))),
-                    @ApiResponse(responseCode = "400", description = "Некорректный запрос",
-                            content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-                    @ApiResponse(responseCode = "401", description = "Неверный refresh-токен",
-                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-            })
-    public ResponseEntity<?> refresh(@RequestBody TokenRefreshRequest request) {
-        if (request.getRefreshToken() == null || request.getRefreshToken().isEmpty()) {
-            return ResponseEntity.badRequest().body(new ErrorResponse("refreshToken is required"));
-        }
-        try {
-            String token = jwtProvider.refreshToken(request.getRefreshToken());
-            return ResponseEntity.ok(new LoginResponse(token));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid refresh token"));
         }
     }
 }
