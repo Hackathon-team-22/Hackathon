@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -35,4 +36,10 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID>,
             @Param("fromDate") java.time.LocalDate fromDate,
             @Param("toDate") java.time.LocalDate toDate
     );
+
+    /**
+     * Находит транзакцию по ID и UUID пользователя, создавшего её.
+     */
+    Optional<Transaction> findByIdAndCreatedByUserId(UUID id, UUID createdByUserId);
+
 }

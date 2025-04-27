@@ -1,7 +1,9 @@
 package com.example.finmonitor.application.service;
 
-import com.example.finmonitor.domain.model.*;
-import com.example.finmonitor.domain.repository.*;
+import com.example.finmonitor.domain.model.Status;
+import com.example.finmonitor.domain.model.Transaction;
+import com.example.finmonitor.domain.repository.StatusRepository;
+import com.example.finmonitor.domain.repository.TransactionRepository;
 import com.example.finmonitor.domain.service.AuditPublisher;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,26 +19,26 @@ public class UpdateTransactionService {
     @Autowired private StatusRepository statusRepository;
     @Autowired private AuditPublisher auditPublisher;
 
-    private final Set<String> immutableStatuses = Set.of(
-            "Подтвержденная", "В обработке", "Отменена", "Платеж выполнен", "Платеж удален", "Возврат");
+    // Статусы, при которых правка запрещена
+    private static final Set<String> immutableStatuses = Set.of("Completed", "Cancelled");
 
+    /**
+     * Обновляет транзакцию только если она принадлежит пользователю userId.
+     */
     @Transactional
-    public Transaction execute(UUID transactionId, Transaction updatedData) {
-
-        // Получаем существующую транзакцию
-        Transaction existingTx = transactionRepository.findById(transactionId)
+    public Transaction execute(UUID transactionId, Transaction updatedData, UUID userId) {
+        Transaction existingTx = transactionRepository
+                .findByIdAndCreatedByUserId(transactionId, userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Transaction not found: " + transactionId)
-                );
+                        new IllegalArgumentException("Транзакция не найдена или недоступна"));
 
-        // Проверяем, можно ли редактировать
         if (immutableStatuses.contains(existingTx.getStatus().getName())) {
             throw new IllegalStateException(
                     "Транзакция со статусом '" + existingTx.getStatus().getName() + "' не может быть отредактирована"
             );
         }
 
-        // Обновляем допустимые для редактирования поля
+        // Обновляем только разрешённые поля
         existingTx.setPartyType(updatedData.getPartyType());
         existingTx.setTimestamp(updatedData.getTimestamp());
         existingTx.setComment(updatedData.getComment());
@@ -48,7 +50,7 @@ public class UpdateTransactionService {
         existingTx.setCategory(updatedData.getCategory());
         existingTx.setReceiverPhone(updatedData.getReceiverPhone());
 
-        // Сохраняем изменения и пишем в аудит
+        // Сохраняем и публикуем в аудит
         Transaction savedTx = transactionRepository.save(existingTx);
         auditPublisher.publishUpdate(savedTx);
 

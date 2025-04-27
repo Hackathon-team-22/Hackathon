@@ -10,9 +10,12 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,17 +25,17 @@ public class DashboardService {
     private DashboardRepository dashboardRepository;
 
     // 1. Динамика по количеству транзакций
-    public List<CountByPeriodDto> countByPeriod(Period period) {
+    public List<CountByPeriodDto> countByPeriod(UUID userId, Period period) {
         LocalDateTime to = LocalDateTime.now();
         LocalDateTime from = calculateFrom(period, to);
 
         return dashboardRepository
-                .countGroupedByPeriod(period.name().toLowerCase(), from, to)
+                .countByPeriodForUser(userId, period.name().toLowerCase(), from, to)
                 .stream()
                 .map(arr -> {
                     // arr[0] — java.sql.Timestamp, а не LocalDateTime
-                    Timestamp ts = (Timestamp) arr[0];
-                    LocalDate date = ts.toLocalDateTime().toLocalDate();
+                    Instant instant = (Instant) arr[0];
+                    LocalDate date = instant.atZone(ZoneId.systemDefault()).toLocalDate();
                     long count = ((Number) arr[1]).longValue();
                     return new CountByPeriodDto(date, count);
                 })
@@ -40,10 +43,10 @@ public class DashboardService {
     }
 
     // 2. Динамика по типу транзакции
-    public List<TransactionTypeDto> byTransactionType(Period period) {
+    public List<TransactionTypeDto> byTransactionType(UUID userId, Period period) {
         var to = LocalDateTime.now();
         var from = calculateFrom(period, to);
-        return dashboardRepository.countByTransactionType(from, to)
+        return dashboardRepository.countByTypeForUser(userId, from, to)
                 .stream()
                 .map(arr -> new TransactionTypeDto(
                         TxnType.valueOf(((String) arr[0]).toUpperCase()),
@@ -53,20 +56,20 @@ public class DashboardService {
     }
 
     // 3. Сравнение сумм поступлений и расходов
-    public AmountComparisonDto compareAmounts(Period period) {
+    public AmountComparisonDto compareAmounts(UUID userId, Period period) {
         var to = LocalDateTime.now();
         var from = calculateFrom(period, to);
-        Object[] sums = dashboardRepository.sumIncomeAndExpense(from, to);
+        Object[] sums = dashboardRepository.sumIncomeAndExpenseForUser(userId, from, to);
         BigDecimal income = (BigDecimal) sums[0];
         BigDecimal expense = (BigDecimal) sums[1];
         return new AmountComparisonDto(income, expense);
     }
 
     // 4. Количество по статусам
-    public List<ExecutionStatusDto> byStatus(Period period) {
+    public List<ExecutionStatusDto> byStatus(UUID userId, Period period) {
         var to = LocalDateTime.now();
         var from = calculateFrom(period, to);
-        return dashboardRepository.countByStatus(from, to)
+        return dashboardRepository.countByStatusForUser(userId, from, to)
                 .stream()
                 .map(arr -> new ExecutionStatusDto(
                         (String) arr[0],
@@ -76,12 +79,12 @@ public class DashboardService {
     }
 
     // 5. Статистика по банкам (sender или receiver)
-    public List<BankStatDto> byBank(DashboardRole role, Period period) {
+    public List<BankStatDto> byBank(UUID userId, DashboardRole role, Period period) {
         var to = LocalDateTime.now();
         var from = calculateFrom(period, to);
         List<Object[]> raw = role == DashboardRole.SENDER
-                ? dashboardRepository.statsBySenderBank(from, to)
-                : dashboardRepository.statsByReceiverBank(from, to);
+                ? dashboardRepository.statsBySenderBankForUser(userId, from, to)
+                : dashboardRepository.statsByReceiverBankForUser(userId, from, to);
         return raw.stream()
                 .map(arr -> new BankStatDto(
                         (java.util.UUID) arr[0],
@@ -93,12 +96,12 @@ public class DashboardService {
     }
 
     // 6. Статистика по категориям
-    public List<CategoryStatDto> byCategory(TxnType type, Period period) {
+    public List<CategoryStatDto> byCategory(UUID userId, TxnType type, Period period) {
         var to = LocalDateTime.now();
         var from = calculateFrom(period, to);
         // Если нужно фильтровать по типу – можно дофильтровать здесь,
         // или расширить репозиторий, но для простоты:
-        return dashboardRepository.statsByCategory(from, to)
+        return dashboardRepository.statsByCategoryForUser(userId, from, to)
                 .stream()
                 .map(arr -> new CategoryStatDto(
                         (java.util.UUID) arr[0],

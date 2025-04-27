@@ -19,20 +19,28 @@ public class DeleteTransactionService {
     @Autowired private StatusRepository statusRepository;
     @Autowired private AuditPublisher auditPublisher;
 
-    private final Set<String> nonDeletableStatuses = Set.of(
-            "Confirmed", "Processing", "Cancelled", "Completed", "Returned");
+    // Статусы, при которых удаление запрещено
+    private static final Set<String> nonDeletableStatuses = Set.of("Completed", "Cancelled");
 
+    /**
+     * Помечает транзакцию удалённой только если она принадлежит пользователю userId.
+     */
     @Transactional
-    public void execute(UUID transactionId) {
-        Transaction existingTx = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaction не найдена"));
+    public void execute(UUID transactionId, UUID userId) {
+        Transaction existingTx = transactionRepository
+                .findByIdAndCreatedByUserId(transactionId, userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Транзакция не найдена или недоступна"));
 
         if (nonDeletableStatuses.contains(existingTx.getStatus().getName())) {
-            throw new IllegalStateException("Транзакция с данным статусом не может быть удалена");
+            throw new IllegalStateException(
+                    "Транзакция с данным статусом не может быть удалена"
+            );
         }
 
         Status deletedStatus = statusRepository.findByName("Deleted")
-                .orElseThrow(() -> new IllegalArgumentException("Статус 'Deleted' не найден"));
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Статус 'Deleted' не найден"));
 
         existingTx.setStatus(deletedStatus);
         transactionRepository.save(existingTx);

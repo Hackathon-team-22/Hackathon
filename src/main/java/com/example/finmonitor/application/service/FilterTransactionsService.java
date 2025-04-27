@@ -18,6 +18,9 @@ public class FilterTransactionsService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    /**
+     * Возвращает страницу транзакций текущего пользователя с заданными фильтрами.
+     */
     public Page<Transaction> execute(
             UUID bankSenderId,
             UUID bankReceiverId,
@@ -29,13 +32,22 @@ public class FilterTransactionsService {
             BigDecimal maxAmount,
             UUID transactionTypeId,
             UUID categoryId,
+            UUID userId,
             Pageable pageable
     ) {
         return transactionRepository.findAll(
                 TransactionSpecification.withFilters(
-                        bankSenderId, bankReceiverId, fromDate, toDate,
-                        statusId, receiverTin, minAmount, maxAmount,
-                        transactionTypeId, categoryId
+                        bankSenderId,
+                        bankReceiverId,
+                        fromDate,
+                        toDate,
+                        statusId,
+                        receiverTin,
+                        minAmount,
+                        maxAmount,
+                        transactionTypeId,
+                        categoryId,
+                        userId
                 ),
                 pageable
         );

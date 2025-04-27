@@ -20,7 +20,8 @@ public class TransactionSpecification {
             BigDecimal minAmount,
             BigDecimal maxAmount,
             UUID transactionTypeId,
-            UUID categoryId
+            UUID categoryId,
+            UUID userId
     ) {
         return (root, query, cb) -> {
             var p = cb.conjunction();
@@ -54,6 +55,9 @@ public class TransactionSpecification {
             }
             if (categoryId != null) {
                 p = cb.and(p, cb.equal(root.join("category", JoinType.LEFT).get("id"), categoryId));
+            }
+            if (userId != null) {
+                p = cb.and(p, cb.equal(root.join("createdByUser", JoinType.LEFT).get("id"), userId));
             }
 
             return p;

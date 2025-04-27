@@ -2,17 +2,14 @@ package com.example.finmonitor.api;
 
 import com.example.finmonitor.application.dto.TransactionRequest;
 import com.example.finmonitor.application.dto.TransactionResponse;
-import com.example.finmonitor.application.service.*;
+import com.example.finmonitor.application.service.CreateTransactionService;
+import com.example.finmonitor.application.service.DeleteTransactionService;
+import com.example.finmonitor.application.service.FilterTransactionsService;
+import com.example.finmonitor.application.service.GetTransactionService;
+import com.example.finmonitor.application.service.UpdateTransactionService;
 import com.example.finmonitor.domain.model.*;
-import com.example.finmonitor.domain.repository.UserRepository;
-import com.example.finmonitor.api.dto.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,7 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -30,7 +26,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/transactions")
-@Tag(name = "Transactions", description = "Операции с финансовыми транзакциями")
 @SecurityRequirement(name = "BearerAuth")
 public class TransactionController {
 
@@ -39,76 +34,45 @@ public class TransactionController {
     @Autowired private UpdateTransactionService updateService;
     @Autowired private DeleteTransactionService deleteService;
     @Autowired private FilterTransactionsService filterService;
-    @Autowired private UserRepository userRepository;
+    @Autowired private UserContext userContext;
 
     @PostMapping
-    @Operation(summary = "Создать транзакцию",
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Транзакция успешно создана",
-                            content = @Content(schema = @Schema(implementation = TransactionResponse.class))),
-                    @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован",
-                            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-            })
+    @Operation(summary = "Создать транзакцию")
     public ResponseEntity<TransactionResponse> create(@Valid @RequestBody TransactionRequest req) {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
-        String username = auth.getName();
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        }
+        UUID userId = userContext.getCurrentUserId();
         Transaction tx = mapToEntity(req);
-        Transaction saved = createService.execute(tx, user.getId());
-        return new ResponseEntity<>(mapToResponse(saved), HttpStatus.CREATED);
+        Transaction saved = createService.execute(tx, userId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(mapToResponse(saved));
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Получить транзакцию по ID",
-            parameters = @Parameter(name = "id", description = "ID транзакции", required = true),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Успешный ответ",
-                            content = @Content(schema = @Schema(implementation = TransactionResponse.class))),
-                    @ApiResponse(responseCode = "404", description = "Транзакция не найдена")
-            })
+    @Operation(summary = "Получить транзакцию по ID")
     public ResponseEntity<TransactionResponse> getById(@PathVariable UUID id) {
-        Transaction tx = getService.execute(id);
+        UUID userId = userContext.getCurrentUserId();
+        Transaction tx = getService.execute(id, userId);
         return ResponseEntity.ok(mapToResponse(tx));
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Обновить транзакцию",
-            parameters = @Parameter(name = "id", description = "ID транзакции", required = true),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Успешное обновление",
-                            content = @Content(schema = @Schema(implementation = TransactionResponse.class)))
-            })
+    @Operation(summary = "Обновить транзакцию")
     public ResponseEntity<TransactionResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody TransactionRequest req) {
+        UUID userId = userContext.getCurrentUserId();
         Transaction tx = mapToEntity(req);
-        Transaction updated = updateService.execute(id, tx);
+        Transaction updated = updateService.execute(id, tx, userId);
         return ResponseEntity.ok(mapToResponse(updated));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Удалить транзакцию",
-            parameters = @Parameter(name = "id", description = "ID транзакции", required = true),
-            responses = {
-                    @ApiResponse(responseCode = "204", description = "Успешное удаление"),
-                    @ApiResponse(responseCode = "404", description = "Транзакция не найдена")
-            })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID id) {
-        deleteService.execute(id);
+        UUID userId = userContext.getCurrentUserId();
+        deleteService.execute(id, userId);
     }
 
     @GetMapping
-    @Operation(summary = "Список транзакций с фильтрацией и пагинацией",
-            responses = @ApiResponse(responseCode = "200", description = "Страница с результатами",
-                    content = @Content(schema = @Schema(implementation = TransactionResponse.class)))
-    )
+    @Operation(summary = "Список транзакций с фильтрацией и пагинацией")
     public Page<TransactionResponse> list(
             @RequestParam(required = false) UUID bankSenderId,
             @RequestParam(required = false) UUID bankReceiverId,
@@ -121,10 +85,11 @@ public class TransactionController {
             @RequestParam(required = false) UUID transactionTypeId,
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ) {
+            @RequestParam(defaultValue = "10") int size) {
+
+        UUID userId = userContext.getCurrentUserId();
         Pageable pageable = PageRequest.of(page, size);
-        Page<Transaction> result = filterService.execute(
+        Page<Transaction> raw = filterService.execute(
                 bankSenderId,
                 bankReceiverId,
                 parseDate(fromDate),
@@ -135,9 +100,10 @@ public class TransactionController {
                 parseDecimal(maxAmount),
                 transactionTypeId,
                 categoryId,
+                userId,
                 pageable
         );
-        return result.map(this::mapToResponse);
+        return raw.map(this::mapToResponse);
     }
 
     private Transaction mapToEntity(TransactionRequest req) {
@@ -150,39 +116,45 @@ public class TransactionController {
         tx.setAccountSender(req.getAccountSender());
         tx.setAccountReceiver(req.getAccountReceiver());
         tx.setCategory(new Category(req.getCategoryId(), null));
-        tx.setAmount(req.getAmount());
         tx.setReceiverTin(req.getReceiverTin());
         tx.setReceiverPhone(req.getReceiverPhone());
         tx.setComment(req.getComment());
-        tx.setTimestamp(req.getTimestamp());
+        tx.setAmount(req.getAmount());
+        tx.setTimestamp(req.getTimestamp() != null
+                ? req.getTimestamp()
+                : LocalDateTime.now());
         return tx;
     }
 
     private TransactionResponse mapToResponse(Transaction tx) {
         return new TransactionResponse(
                 tx.getId(),
-                tx.getCreatedByUser().getId(),
-                tx.getTimestamp(),
-                tx.getPartyType().getId(),
-                tx.getTransactionType().getId(),
-                tx.getStatus().getId(),
-                tx.getBankSender().getId(),
-                tx.getBankReceiver().getId(),
-                tx.getAccountSender(),
-                tx.getAccountReceiver(),
-                tx.getCategory().getId(),
-                tx.getAmount(),
-                tx.getReceiverTin(),
-                tx.getReceiverPhone(),
-                tx.getComment()
+                tx.getCreatedByUser().getId(),    // createdByUserId
+                tx.getTimestamp(),                // timestamp как LocalDateTime
+                tx.getPartyType().getId(),        // partyTypeId
+                tx.getTransactionType().getId(),  // transactionTypeId
+                tx.getStatus().getId(),           // statusId
+                tx.getBankSender().getId(),       // bankSenderId
+                tx.getBankReceiver().getId(),     // bankReceiverId
+                tx.getAccountSender(),            // accountSender
+                tx.getAccountReceiver(),          // accountReceiver
+                tx.getCategory().getId(),         // categoryId
+                tx.getAmount(),                   // amount
+                tx.getReceiverTin(),              // receiverTin
+                tx.getReceiverPhone(),            // receiverPhone
+                tx.getComment()                   // comment
         );
     }
 
-    private LocalDateTime parseDate(String s) {
-        return s == null ? null : LocalDateTime.parse(s, DateTimeFormatter.ISO_DATE_TIME);
+    private LocalDateTime parseDate(String str) {
+        return str != null
+                ? LocalDateTime.parse(str, DateTimeFormatter.ISO_DATE_TIME)
+                : null;
     }
 
-    private BigDecimal parseDecimal(String s) {
-        return s == null ? null : new BigDecimal(s);
+    private BigDecimal parseDecimal(String str) {
+        return str != null
+                ? new BigDecimal(str)
+                : null;
     }
 }

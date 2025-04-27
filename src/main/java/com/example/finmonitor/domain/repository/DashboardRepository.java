@@ -1,22 +1,46 @@
-// File: src/main/java/com/example/finmonitor/domain/repository/DashboardRepository.java
 package com.example.finmonitor.domain.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
+/**
+ * Репозиторий для получения статистических данных по транзакциям текущего пользователя.
+ */
 public interface DashboardRepository {
 
-    List<Object[]> countGroupedByPeriod(String period, LocalDateTime from, LocalDateTime to);
+    /**
+     * Динамика по количеству транзакций за период для пользователя.
+     */
+    List<Object[]> countByPeriodForUser(UUID userId, String period, LocalDateTime from, LocalDateTime to);
 
-    List<Object[]> countByTransactionType(LocalDateTime from, LocalDateTime to);
+    /**
+     * Распределение транзакций по типу (Credit/Debit) за период для пользователя.
+     */
+    List<Object[]> countByTypeForUser(UUID userId, LocalDateTime from, LocalDateTime to);
 
-    Object[] sumIncomeAndExpense(LocalDateTime from, LocalDateTime to);
+    /**
+     * Суммы поступлений и расходов за период для пользователя.
+     */
+    Object[] sumIncomeAndExpenseForUser(UUID userId, LocalDateTime from, LocalDateTime to);
 
-    List<Object[]> countByStatus(LocalDateTime from, LocalDateTime to);
+    /**
+     * Распределение транзакций по статусам за период для пользователя.
+     */
+    List<Object[]> countByStatusForUser(UUID userId, LocalDateTime from, LocalDateTime to);
 
-    List<Object[]> statsBySenderBank(LocalDateTime from, LocalDateTime to);
+    /**
+     * Статистика по банкам-отправителям за период для пользователя.
+     */
+    List<Object[]> statsBySenderBankForUser(UUID userId, LocalDateTime from, LocalDateTime to);
 
-    List<Object[]> statsByReceiverBank(LocalDateTime from, LocalDateTime to);
+    /**
+     * Статистика по банкам-получателям за период для пользователя.
+     */
+    List<Object[]> statsByReceiverBankForUser(UUID userId, LocalDateTime from, LocalDateTime to);
 
-    List<Object[]> statsByCategory(LocalDateTime from, LocalDateTime to);
+    /**
+     * Статистика по категориям расходов/доходов за период для пользователя.
+     */
+    List<Object[]> statsByCategoryForUser(UUID userId, LocalDateTime from, LocalDateTime to);
 }

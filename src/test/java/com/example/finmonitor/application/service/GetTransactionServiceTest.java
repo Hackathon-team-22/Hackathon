@@ -11,10 +11,14 @@ import org.mockito.MockitoAnnotations;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
-class GetTransactionServiceTest {
+public class GetTransactionServiceTest {
+
+    private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
 
     @Mock
     private TransactionRepository transactionRepository;
@@ -26,29 +30,24 @@ class GetTransactionServiceTest {
     private Transaction tx;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         id = UUID.randomUUID();
         tx = new Transaction();
         tx.setId(id);
+        when(transactionRepository.findByIdAndCreatedByUserId(id, USER_ID)).thenReturn(Optional.of(tx));
     }
 
     @Test
-    void execute_found_returnsTransaction() {
-        when(transactionRepository.findById(id)).thenReturn(Optional.of(tx));
-
-        Transaction result = getService.execute(id);
-
-        assertSame(tx, result);
-        verify(transactionRepository).findById(id);
+    public void execute_success() {
+        Transaction result = getService.execute(id, USER_ID);
+        assertEquals(tx, result);
     }
 
     @Test
-    void execute_notFound_throws() {
-        when(transactionRepository.findById(id)).thenReturn(Optional.empty());
-
-        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> getService.execute(id));
-        assertTrue(ex.getMessage().contains(id.toString()));
+    public void execute_notFound_throws() {
+        UUID otherId = UUID.randomUUID();
+        when(transactionRepository.findByIdAndCreatedByUserId(otherId, USER_ID)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> getService.execute(otherId, USER_ID));
     }
 }

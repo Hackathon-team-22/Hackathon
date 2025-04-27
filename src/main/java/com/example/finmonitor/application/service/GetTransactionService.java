@@ -7,9 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-/**
- * Сервис получения транзакции по идентификатору
- */
 @Service
 public class GetTransactionService {
 
@@ -17,12 +14,12 @@ public class GetTransactionService {
     private TransactionRepository transactionRepository;
 
     /**
-     * Возвращает транзакцию по ID или выбрасывает IllegalArgumentException, если не найдено
+     * Возвращает транзакцию только если она принадлежит пользователю userId.
      */
-    public Transaction execute(UUID id) {
-        return transactionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        String.format("Transaction with id %s not found", id)
-                ));
+    public Transaction execute(UUID transactionId, UUID userId) {
+        return transactionRepository
+                .findByIdAndCreatedByUserId(transactionId, userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Транзакция не найдена или недоступна"));
     }
 }

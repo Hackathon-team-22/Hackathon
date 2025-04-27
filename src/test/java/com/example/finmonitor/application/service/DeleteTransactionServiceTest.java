@@ -19,9 +19,16 @@ import static org.mockito.Mockito.*;
 
 class DeleteTransactionServiceTest {
 
-    @Mock private TransactionRepository transactionRepository;
-    @Mock private StatusRepository statusRepository;
-    @Mock private AuditPublisher auditPublisher;
+    private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
+    @Mock
+    private TransactionRepository transactionRepository;
+
+    @Mock
+    private StatusRepository statusRepository;
+
+    @Mock
+    private AuditPublisher auditPublisher;
 
     @InjectMocks
     private DeleteTransactionService deleteService;
@@ -31,21 +38,21 @@ class DeleteTransactionServiceTest {
     private Status deletedStatus;
 
     @BeforeEach
-    void setUp() {
+    void setup() {
         MockitoAnnotations.openMocks(this);
         id = UUID.randomUUID();
         existing = new Transaction();
         existing.setId(id);
         existing.setStatus(new Status(UUID.randomUUID(), "Новая"));
 
-        when(transactionRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(transactionRepository.findByIdAndCreatedByUserId(id, USER_ID)).thenReturn(Optional.of(existing));
         deletedStatus = new Status(UUID.randomUUID(), "Платеж удален");
         when(statusRepository.findByName("Платеж удален")).thenReturn(Optional.of(deletedStatus));
     }
 
     @Test
     void execute_deletable_setsDeletedStatusAndPublishes() {
-        deleteService.execute(id);
+        deleteService.execute(id, USER_ID);
         assertEquals(deletedStatus, existing.getStatus());
         verify(transactionRepository).save(existing);
         verify(auditPublisher).publishDelete(existing);
@@ -54,8 +61,8 @@ class DeleteTransactionServiceTest {
     @Test
     void execute_nonDeletable_throws() {
         existing.setStatus(new Status(UUID.randomUUID(), "Подтвержденная"));
-        when(transactionRepository.findById(id)).thenReturn(Optional.of(existing));
+        when(transactionRepository.findByIdAndCreatedByUserId(id, USER_ID)).thenReturn(Optional.of(existing));
 
-        assertThrows(IllegalStateException.class, () -> deleteService.execute(id));
+        assertThrows(IllegalStateException.class, () -> deleteService.execute(id, USER_ID));
     }
 }

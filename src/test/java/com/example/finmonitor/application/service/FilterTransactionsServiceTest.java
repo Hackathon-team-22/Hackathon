@@ -15,22 +15,26 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-class FilterTransactionsServiceTest {
+public class FilterTransactionsServiceTest {
 
-    @Mock private TransactionRepository transactionRepository;
-    @InjectMocks private FilterTransactionsService filterService;
+    @Mock
+    private TransactionRepository transactionRepository;
+
+    @InjectMocks
+    private FilterTransactionsService filterService;
 
     @BeforeEach
-    void setUp() {
+    public void setup() {
         MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    void execute_callsFindAllWithCorrectArguments() {
+    public void testExecute_withFilters() {
         Transaction tx = new Transaction();
         Page<Transaction> page = new PageImpl<>(List.of(tx));
         when(transactionRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
@@ -38,7 +42,9 @@ class FilterTransactionsServiceTest {
         Page<Transaction> result = filterService.execute(
                 UUID.randomUUID(), UUID.randomUUID(), LocalDateTime.now(), LocalDateTime.now(),
                 UUID.randomUUID(), "12345678901", new BigDecimal("1"), new BigDecimal("10"),
-                UUID.randomUUID(), UUID.randomUUID(), Pageable.unpaged()
+                UUID.randomUUID(), UUID.randomUUID(),
+                UUID.randomUUID(), // userId filter
+                Pageable.unpaged()
         );
 
         assertSame(page, result);

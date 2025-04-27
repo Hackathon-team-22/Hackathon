@@ -4,6 +4,7 @@ import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.model.AuditLog;
 import com.example.finmonitor.domain.repository.TransactionRepository;
 import com.example.finmonitor.domain.repository.AuditLogRepository;
+import com.example.finmonitor.domain.spec.AuditLogSpecification;
 import com.example.finmonitor.domain.spec.TransactionSpecification;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -31,6 +32,7 @@ public class ExportController {
 
     @Autowired private TransactionRepository transactionRepository;
     @Autowired private AuditLogRepository auditLogRepository;
+    @Autowired private UserContext userContext;
 
     @GetMapping(value = "/transactions", produces = "text/csv")
     @Operation(summary = "Экспорт транзакций в CSV",
@@ -54,10 +56,11 @@ public class ExportController {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=transactions.csv");
         try (PrintWriter writer = response.getWriter()) {
+            UUID userId = userContext.getCurrentUserId();
             writer.println("id,createdByUserId,timestamp,partyType,transactionType,status,bankSender,bankReceiver,accountSender,accountReceiver,category,amount,receiverTin,receiverPhone,comment");
             Specification<Transaction> spec = TransactionSpecification.withFilters(
                     bankSenderId, bankReceiverId, parseDateTime(fromDate), parseDateTime(toDate),
-                    statusId, receiverTin, minAmount, maxAmount, transactionTypeId, categoryId
+                    statusId, receiverTin, minAmount, maxAmount, transactionTypeId, categoryId, userId
             );
             List<Transaction> list = transactionRepository.findAll(spec);
             DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE_TIME;
@@ -84,27 +87,16 @@ public class ExportController {
     }
 
     @GetMapping(value = "/audit", produces = "text/csv")
-    @Operation(summary = "Экспорт аудита в CSV",
-            responses = @ApiResponse(responseCode = "200", description = "CSV-файл с логами изменений",
-                    content = @Content(mediaType = "text/csv"))
-    )
+    @Operation(summary = "Экспорт логов изменений текущего пользователя")
     public void exportAudit(HttpServletResponse response) throws IOException {
+        UUID userId = userContext.getCurrentUserId();
+        Specification<AuditLog> spec = AuditLogSpecification.forUser(userId);
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=audit_log.csv");
         try (PrintWriter writer = response.getWriter()) {
-            writer.println("id,entityName,entityId,changedByUserId,timestamp,changes");
-            List<AuditLog> logs = auditLogRepository.findAll();
-            DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE_TIME;
-            for (AuditLog log : logs) {
-                writer.printf("%s,%s,%s,%s,%s,%s%n",
-                        log.getId(),
-                        log.getEntityName(),
-                        log.getEntityId(),
-                        log.getChangedByUser().getId(),
-                        log.getTimestamp().format(fmt),
-                        log.getChanges().replaceAll(",", " ")
-                );
-            }
+            // шапка CSV
+            List<AuditLog> logs = auditLogRepository.findAll(spec);
+            // запись строк
         }
     }
 
