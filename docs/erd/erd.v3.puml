@@ -1,0 +1,74 @@
+@startuml
+'skinparam linetype ortho
+skinparam defaultFontName Arial
+
+entity "users" as users {
+  * id : UUID
+    username : VARCHAR(100)
+    password_hash : VARCHAR(255)
+    role : VARCHAR(50)
+}
+
+entity "party_type" as party_type {
+  * id : UUID
+    name : VARCHAR(50)
+}
+
+entity "transaction_type" as transaction_type {
+  * id : UUID
+    name : VARCHAR(50)
+}
+
+entity "status" as status {
+  * id : UUID
+    name : VARCHAR(50)
+}
+
+entity "bank" as bank {
+  * id : UUID
+    name : VARCHAR(200)
+}
+
+entity "category" as category {
+  * id : UUID
+    name : VARCHAR(100)
+}
+
+entity "transactions" as transactions {
+  * id : UUID
+    created_by_user_id : UUID
+    timestamp : TIMESTAMP WITH TIME ZONE
+    party_type_id : UUID
+    transaction_type_id : UUID
+    status_id : UUID
+    bank_sender_id : UUID
+    account_sender : VARCHAR(34)
+    bank_receiver_id : UUID
+    account_receiver : VARCHAR(34)
+    category_id : UUID
+    amount : NUMERIC(18,5)
+    receiver_tin : VARCHAR(11)
+    receiver_phone : VARCHAR(12)
+    comment : TEXT
+}
+
+entity "audit_log" as audit_log {
+  * id : UUID
+    entity_name : VARCHAR(100)
+    entity_id : UUID
+    changed_by_user_id : UUID
+    timestamp : TIMESTAMP WITH TIME ZONE
+    changes : TEXT
+}
+
+' Relationships
+users          ||--o{ transactions
+party_type     ||--o{ transactions
+transaction_type ||--o{ transactions
+status         ||--o{ transactions
+bank           ||--o{ transactions       : "bank_sender_id ➔ bank.id"
+bank           ||--o{ transactions       : "bank_receiver_id ➔ bank.id"
+category       ||--o{ transactions
+transactions   ||--o{ audit_log          : "entity_id ➔ transactions.id"
+users          ||--o{ audit_log
+@enduml
