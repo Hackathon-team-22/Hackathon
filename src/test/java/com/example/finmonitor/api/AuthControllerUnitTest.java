@@ -1,7 +1,6 @@
-// File: src/test/java/com/example/finmonitor/api/AuthControllerUnitTest.java
 package com.example.finmonitor.api;
 
-import com.example.finmonitor.application.dto.RegisterRequest;
+import com.example.finmonitor.api.dto.RegisterRequest;
 import com.example.finmonitor.domain.model.User;
 import com.example.finmonitor.domain.repository.UserRepository;
 import com.example.finmonitor.security.JwtProvider;

@@ -1,4 +1,4 @@
-package com.example.finmonitor.application.dto.dashboard;
+package com.example.finmonitor.api.dto.dashboard;
 
 public record ExecutionStatusDto(
         String status,

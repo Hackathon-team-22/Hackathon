@@ -1,6 +1,6 @@
 package com.example.finmonitor.application.service;
 
-import com.example.finmonitor.application.dto.dashboard.*;
+import com.example.finmonitor.api.dto.dashboard.*;
 import com.example.finmonitor.application.enums.DashboardRole;
 import com.example.finmonitor.application.enums.Period;
 import com.example.finmonitor.application.enums.TxnType;
@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

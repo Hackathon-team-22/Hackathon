@@ -1,11 +1,11 @@
 package com.example.finmonitor.api;
 
-import com.example.finmonitor.application.dto.dashboard.AmountComparisonDto;
-import com.example.finmonitor.application.dto.dashboard.BankStatDto;
-import com.example.finmonitor.application.dto.dashboard.CategoryStatDto;
-import com.example.finmonitor.application.dto.dashboard.CountByPeriodDto;
-import com.example.finmonitor.application.dto.dashboard.ExecutionStatusDto;
-import com.example.finmonitor.application.dto.dashboard.TransactionTypeDto;
+import com.example.finmonitor.api.dto.dashboard.AmountComparisonDto;
+import com.example.finmonitor.api.dto.dashboard.BankStatDto;
+import com.example.finmonitor.api.dto.dashboard.CategoryStatDto;
+import com.example.finmonitor.api.dto.dashboard.CountByPeriodDto;
+import com.example.finmonitor.api.dto.dashboard.ExecutionStatusDto;
+import com.example.finmonitor.api.dto.dashboard.TransactionTypeDto;
 import com.example.finmonitor.application.enums.DashboardRole;
 import com.example.finmonitor.application.enums.Period;
 import com.example.finmonitor.application.enums.TxnType;

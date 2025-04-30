@@ -1,6 +1,6 @@
 package com.example.finmonitor.api;
 
-import com.example.finmonitor.application.dto.TransactionRequest;
+import com.example.finmonitor.api.dto.TransactionRequest;
 import com.example.finmonitor.application.service.*;
 import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.model.User;
@@ -13,7 +13,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 

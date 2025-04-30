@@ -1,4 +1,4 @@
-package com.example.finmonitor.application.dto;
+package com.example.finmonitor.api.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.*;
