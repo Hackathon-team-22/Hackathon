@@ -2,7 +2,7 @@ package com.example.finmonitor.api;
 
 import com.example.finmonitor.api.dto.*;
 import com.example.finmonitor.domain.model.User;
-import com.example.finmonitor.domain.repository.UserRepository;
+import com.example.finmonitor.repository.UserRepository;
 import com.example.finmonitor.security.JwtProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

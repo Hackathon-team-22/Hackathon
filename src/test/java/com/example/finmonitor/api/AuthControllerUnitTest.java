@@ -2,7 +2,7 @@ package com.example.finmonitor.api;
 
 import com.example.finmonitor.api.dto.RegisterRequest;
 import com.example.finmonitor.domain.model.User;
-import com.example.finmonitor.domain.repository.UserRepository;
+import com.example.finmonitor.repository.UserRepository;
 import com.example.finmonitor.security.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

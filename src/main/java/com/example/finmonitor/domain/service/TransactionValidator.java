@@ -1,7 +1,7 @@
 package com.example.finmonitor.domain.service;
 
 import com.example.finmonitor.domain.model.Status;
-import com.example.finmonitor.domain.repository.StatusRepository;
+import com.example.finmonitor.repository.StatusRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 

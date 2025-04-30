@@ -1,19 +1,13 @@
-package com.example.finmonitor.api;
+package com.example.finmonitor.api.controller;
 
+import com.example.finmonitor.api.UserContext;
 import com.example.finmonitor.api.dto.dashboard.*;
-import com.example.finmonitor.application.enums.DashboardRole;
-import com.example.finmonitor.application.enums.Period;
-import com.example.finmonitor.application.enums.TxnType;
-import com.example.finmonitor.application.service.DashboardService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import com.example.finmonitor.api.mapper.DashboardMapper;
+import com.example.finmonitor.application.usecase.dashboard.DashboardService;
+import com.example.finmonitor.application.usecase.dashboard.model.query.*;
+import com.example.finmonitor.application.usecase.dashboard.model.result.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,113 +16,88 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/dashboard")
-@Tag(name = "Dashboard", description = "Метрики и статистика по транзакциям")
 @SecurityRequirement(name = "BearerAuth")
 public class DashboardController {
 
-    @Autowired
-    private DashboardService dashboardService;
-    @Autowired
-    private UserContext userContext;
+    private final DashboardService dashboardService;
+    private final DashboardMapper mapper;
+    private final UserContext userContext;
 
-    @Operation(summary = "1. Динамика по количеству транзакций за заданный период",
-            responses = @ApiResponse(responseCode = "200", description = "Список CountByPeriodDto",
-                    content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = CountByPeriodDto.class)))
-    )
+    public DashboardController(DashboardService dashboardService,
+                               DashboardMapper mapper,
+                               UserContext userContext) {
+        this.dashboardService = dashboardService;
+        this.mapper = mapper;
+        this.userContext = userContext;
+    }
+
+    /** 1. Динамика по количеству транзакций за период */
     @GetMapping("/transactions/count")
-    public ResponseEntity<List<CountByPeriodDto>> getCountByPeriod(
-            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
-    ) {
+    public ResponseEntity<List<CountByPeriodResponse>> getCountByPeriod(
+            @Valid @ModelAttribute CountByPeriodRequest request) {
         UUID userId = userContext.getCurrentUserId();
-        return ResponseEntity.ok(dashboardService.countByPeriod(userId, period));
+        CountByPeriodQuery query = mapper.toCountByPeriodQuery(request, userId);
+        List<CountByPeriodResult> results = dashboardService.countByPeriod(query);
+        return ResponseEntity.ok(mapper.toCountByPeriodResponseList(results));
     }
 
-    @Operation(summary = "2. Распределение по типу транзакции (Поступление/Списание)",
-            responses = @ApiResponse(responseCode = "200", description = "Список TransactionTypeDto",
-                    content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = TransactionTypeDto.class)))
-    )
+    /** 2. Распределение по типу транзакции */
     @GetMapping("/transactions/type")
-    public ResponseEntity<List<TransactionTypeDto>> getByTransactionType(
-            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
-    ) {
+    public ResponseEntity<List<CountByTypeResponse>> getCountByType(
+            @Valid @ModelAttribute CountByTypeRequest request) {
         UUID userId = userContext.getCurrentUserId();
-        return ResponseEntity.ok(dashboardService.byTransactionType(userId, period));
+        CountByTypeQuery query = mapper.toCountByTypeQuery(request, userId);
+        List<CountByTypeResult> results = dashboardService.countByType(query);
+        return ResponseEntity.ok(mapper.toCountByTypeResponseList(results));
     }
 
-
-    @Operation(
-            summary = "Динамика транзакций по типу",
-            description = """
-                    Возвращает временной ряд количества транзакций для конкретного пользователя
-                    и заданного типа (DEBIT или CREDIT) с указанной гранулярностью.
-                    """
-    )
-    @GetMapping("/type-dynamics")
-    public ResponseEntity<List<CountByPeriodDto>> getTypeDynamics(
-            @Valid @ModelAttribute
-            @Parameter(description = "Параметры фильтрации и агрегации")
-            TypeDynamicsRequest request
-    ) {
+    /** 2b. Динамика транзакций по типу */
+    @GetMapping("/transactions/type-dynamics")
+    public ResponseEntity<List<CountByPeriodResponse>> getDynamicsByType(
+            @Valid @ModelAttribute DynamicsByTypeRequest request) {
         UUID userId = userContext.getCurrentUserId();
-
-        List<CountByPeriodDto> result = dashboardService.getCountByTypeAndPeriod(
-                userId,
-                request.getType(),
-                request.getPeriod(),
-                request.getStart(),
-                request.getEnd()
-        );
-        return ResponseEntity.ok(result);
+        DynamicsByTypeQuery query = mapper.toDynamicsByTypeQuery(request, userId);
+        List<DynamicsByTypeResult> results = dashboardService.dynamicsByType(query);
+        return ResponseEntity.ok(mapper.toCountByPeriodResponseListFromDynamics(results));
     }
 
-    @Operation(summary = "3. Сравнение сумм поступлений и расходов за период",
-            responses = @ApiResponse(responseCode = "200", description = "AmountComparisonDto",
-                    content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = AmountComparisonDto.class)))
-    )
+    /** 3. Сравнение сумм поступлений и расходов */
     @GetMapping("/transactions/compare")
-    public ResponseEntity<AmountComparisonDto> getAmountComparison(
-            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
-    ) {
+    public ResponseEntity<List<CompareFundsResponse>> compareFunds(
+            @Valid @ModelAttribute CompareFundsRequest request) {
         UUID userId = userContext.getCurrentUserId();
-        return ResponseEntity.ok(dashboardService.compareAmounts(userId, period));
+        CompareFundsQuery query = mapper.toCompareFundsQuery(request, userId);
+        List<CompareFundsResult> result = dashboardService.compareFunds(query);
+        return ResponseEntity.ok(mapper.toCompareFundsResponseList(result));
     }
 
-    @Operation(summary = "4. Количество транзакций по статусам за период",
-            responses = @ApiResponse(responseCode = "200", description = "Список ExecutionStatusDto",
-                    content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = ExecutionStatusDto.class)))
-    )
+    /** 4. Количество проведённых и отменённых транзакций */
     @GetMapping("/transactions/status")
-    public ResponseEntity<List<ExecutionStatusDto>> getByStatus(
-            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
-    ) {
+    public ResponseEntity<List<CountByStatusResponse>> getCountByStatus(
+            @Valid @ModelAttribute CountByStatusRequest request) {
         UUID userId = userContext.getCurrentUserId();
-        return ResponseEntity.ok(dashboardService.byStatus(userId, period));
+        CountByStatusQuery query = mapper.toCountByStatusQuery(request, userId);
+        List<CountByStatusResult> result = dashboardService.countByStatus(query);
+        return ResponseEntity.ok(mapper.toCountByStatusResponseList(result));
     }
 
-    @Operation(summary = "5. Статистика по банкам отправителей или получателей",
-            responses = @ApiResponse(responseCode = "200", description = "Список BankStatDto",
-                    content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = BankStatDto.class)))
-    )
+    /** 5. Статистика по банкам отправителя/получателя */
     @GetMapping("/transactions/banks")
-    public ResponseEntity<List<BankStatDto>> getByBank(
-            @Parameter(description = "Роль банка (SENDER или RECEIVER)") @RequestParam @NotNull DashboardRole role,
-            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
-    ) {
+    public ResponseEntity<List<StatsByBankResponse>> getStatsByBank(
+            @Valid @ModelAttribute StatsByBankRequest request) {
         UUID userId = userContext.getCurrentUserId();
-        return ResponseEntity.ok(dashboardService.byBank(userId, role, period));
+        StatsByBankQuery query = mapper.toStatsByBankQuery(request, userId);
+        List<StatsByBankResult> results = dashboardService.statsByBank(query);
+        return ResponseEntity.ok(mapper.toStatsByBankResponseList(results));
     }
 
-    @Operation(summary = "6. Статистика по категориям расходов/доходов",
-            responses = @ApiResponse(responseCode = "200", description = "Список CategoryStatDto",
-                    content = @Content(schema = @io.swagger.v3.oas.annotations.media.Schema(implementation = CategoryStatDto.class)))
-    )
+    /** 6. Статистика по категориям расходов/доходов */
     @GetMapping("/transactions/categories")
-    public ResponseEntity<List<CategoryStatDto>> getByCategory(
-            @Parameter(description = "Тип транзакции (CREDIT или DEBIT)") @RequestParam @NotNull TxnType type,
-            @Parameter(description = "Период агрегации") @RequestParam @NotNull Period period
-    ) {
+    public ResponseEntity<List<StatsByCategoryResponse>> getStatsByCategory(
+            @Valid @ModelAttribute StatsByCategoryRequest request) {
         UUID userId = userContext.getCurrentUserId();
-        return ResponseEntity.ok(dashboardService.byCategory(userId, type, period));
+        StatsByCategoryQuery query = mapper.toStatsByCategoryQuery(request, userId);
+        List<StatsByCategoryResult> results = dashboardService.statsByCategory(query);
+        return ResponseEntity.ok(mapper.toStatsByCategoryResponseList(results));
     }
-
 }

@@ -4,7 +4,7 @@ import com.example.finmonitor.api.dto.TransactionRequest;
 import com.example.finmonitor.application.service.*;
 import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.model.User;
-import com.example.finmonitor.domain.repository.UserRepository;
+import com.example.finmonitor.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

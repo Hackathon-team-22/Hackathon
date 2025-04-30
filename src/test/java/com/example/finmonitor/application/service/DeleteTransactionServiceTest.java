@@ -2,8 +2,8 @@ package com.example.finmonitor.application.service;
 
 import com.example.finmonitor.domain.model.Status;
 import com.example.finmonitor.domain.model.Transaction;
-import com.example.finmonitor.domain.repository.StatusRepository;
-import com.example.finmonitor.domain.repository.TransactionRepository;
+import com.example.finmonitor.repository.StatusRepository;
+import com.example.finmonitor.repository.TransactionRepository;
 import com.example.finmonitor.domain.service.AuditPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

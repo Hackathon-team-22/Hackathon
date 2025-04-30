@@ -1,7 +1,7 @@
 package com.example.finmonitor.application.service;
 
 import com.example.finmonitor.domain.model.Transaction;
-import com.example.finmonitor.domain.repository.TransactionRepository;
+import com.example.finmonitor.repository.TransactionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

@@ -2,8 +2,8 @@ package com.example.finmonitor.api;
 
 import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.model.AuditLog;
-import com.example.finmonitor.domain.repository.TransactionRepository;
-import com.example.finmonitor.domain.repository.AuditLogRepository;
+import com.example.finmonitor.repository.TransactionRepository;
+import com.example.finmonitor.repository.AuditLogRepository;
 import com.example.finmonitor.domain.spec.AuditLogSpecification;
 import com.example.finmonitor.domain.spec.TransactionSpecification;
 import io.swagger.v3.oas.annotations.Operation;

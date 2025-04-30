@@ -1,7 +1,7 @@
 package com.example.finmonitor.api;
 
 import com.example.finmonitor.domain.model.*;
-import com.example.finmonitor.domain.repository.*;
+import com.example.finmonitor.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
