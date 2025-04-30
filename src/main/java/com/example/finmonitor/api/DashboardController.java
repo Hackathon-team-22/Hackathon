@@ -1,11 +1,6 @@
 package com.example.finmonitor.api;
 
-import com.example.finmonitor.api.dto.dashboard.AmountComparisonDto;
-import com.example.finmonitor.api.dto.dashboard.BankStatDto;
-import com.example.finmonitor.api.dto.dashboard.CategoryStatDto;
-import com.example.finmonitor.api.dto.dashboard.CountByPeriodDto;
-import com.example.finmonitor.api.dto.dashboard.ExecutionStatusDto;
-import com.example.finmonitor.api.dto.dashboard.TransactionTypeDto;
+import com.example.finmonitor.api.dto.dashboard.*;
 import com.example.finmonitor.application.enums.DashboardRole;
 import com.example.finmonitor.application.enums.Period;
 import com.example.finmonitor.application.enums.TxnType;
@@ -16,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +53,32 @@ public class DashboardController {
     ) {
         UUID userId = userContext.getCurrentUserId();
         return ResponseEntity.ok(dashboardService.byTransactionType(userId, period));
+    }
+
+
+    @Operation(
+            summary = "Динамика транзакций по типу",
+            description = """
+                    Возвращает временной ряд количества транзакций для конкретного пользователя
+                    и заданного типа (DEBIT или CREDIT) с указанной гранулярностью.
+                    """
+    )
+    @GetMapping("/type-dynamics")
+    public ResponseEntity<List<CountByPeriodDto>> getTypeDynamics(
+            @Valid @ModelAttribute
+            @Parameter(description = "Параметры фильтрации и агрегации")
+            TypeDynamicsRequest request
+    ) {
+        UUID userId = userContext.getCurrentUserId();
+
+        List<CountByPeriodDto> result = dashboardService.getCountByTypeAndPeriod(
+                userId,
+                request.getType(),
+                request.getPeriod(),
+                request.getStart(),
+                request.getEnd()
+        );
+        return ResponseEntity.ok(result);
     }
 
     @Operation(summary = "3. Сравнение сумм поступлений и расходов за период",

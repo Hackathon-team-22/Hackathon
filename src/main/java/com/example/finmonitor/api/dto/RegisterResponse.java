@@ -1,7 +1,11 @@
 package com.example.finmonitor.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "Ответ при успешной регистрации")
 public class RegisterResponse {
 
@@ -14,11 +18,4 @@ public class RegisterResponse {
         this.message = message;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }

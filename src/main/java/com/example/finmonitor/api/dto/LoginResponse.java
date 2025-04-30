@@ -1,7 +1,11 @@
 package com.example.finmonitor.api.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Schema(description = "Ответ при успешной авторизации")
 public class LoginResponse {
 
@@ -14,11 +18,4 @@ public class LoginResponse {
         this.accessToken = accessToken;
     }
 
-    public String getAccessToken() {
-        return accessToken;
-    }
-
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
-    }
 }

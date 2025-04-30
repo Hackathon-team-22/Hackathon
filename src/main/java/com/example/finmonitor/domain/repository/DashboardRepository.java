@@ -1,5 +1,9 @@
 package com.example.finmonitor.domain.repository;
 
+import com.example.finmonitor.api.dto.dashboard.CountByPeriodDto;
+import com.example.finmonitor.application.enums.Period;
+import com.example.finmonitor.application.enums.TxnType;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -43,4 +47,15 @@ public interface DashboardRepository {
      * Статистика по категориям расходов/доходов за период для пользователя.
      */
     List<Object[]> statsByCategoryForUser(UUID userId, LocalDateTime from, LocalDateTime to);
+
+    /**
+     * Динамика числа транзакций по периодам для заданного типа (DEBIT/CREDIT).
+     */
+    List<CountByPeriodDto> countByTypeAndPeriodForUser(
+            UUID userId,
+            TxnType typeName,
+            Period period,
+            LocalDateTime from,
+            LocalDateTime to
+    );
 }

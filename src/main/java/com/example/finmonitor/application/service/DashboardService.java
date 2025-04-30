@@ -54,6 +54,15 @@ public class DashboardService {
                 .collect(Collectors.toList());
     }
 
+    public List<CountByPeriodDto> getCountByTypeAndPeriod(
+            UUID userId,
+            TxnType type,
+            Period period,
+            LocalDateTime start,
+            LocalDateTime end) {
+        return dashboardRepository.countByTypeAndPeriodForUser(userId, type, period, start, end);
+    }
+
     // 3. Сравнение сумм поступлений и расходов
     public AmountComparisonDto compareAmounts(UUID userId, Period period) {
         var to = LocalDateTime.now();
@@ -86,7 +95,7 @@ public class DashboardService {
                 : dashboardRepository.statsByReceiverBankForUser(userId, from, to);
         return raw.stream()
                 .map(arr -> new BankStatDto(
-                        (java.util.UUID) arr[0],
+                        (UUID) arr[0],
                         (String) arr[1],
                         ((Number) arr[2]).longValue(),
                         (BigDecimal) arr[3]
@@ -103,7 +112,7 @@ public class DashboardService {
         return dashboardRepository.statsByCategoryForUser(userId, from, to)
                 .stream()
                 .map(arr -> new CategoryStatDto(
-                        (java.util.UUID) arr[0],
+                        (UUID) arr[0],
                         (String) arr[1],
                         ((Number) arr[2]).longValue(),
                         (BigDecimal) arr[3]
@@ -114,6 +123,7 @@ public class DashboardService {
     // Вспомогательный метод: вычисляет дату начала периода
     private LocalDateTime calculateFrom(Period period, LocalDateTime to) {
         return switch (period) {
+            case DAY -> to.minusDays(1);
             case WEEK -> to.minusWeeks(1);
             case MONTH -> to.minusMonths(1);
             case QUARTER -> to.minusMonths(3);
