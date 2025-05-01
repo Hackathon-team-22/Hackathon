@@ -5,6 +5,7 @@ import com.example.finmonitor.api.mapper.DashboardMapper;
 import com.example.finmonitor.application.usecase.dashboard.DashboardService;
 import com.example.finmonitor.application.usecase.dashboard.model.query.*;
 import com.example.finmonitor.application.usecase.dashboard.model.result.*;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ public class DashboardController {
      * 1. Динамика по количеству транзакций за период
      */
     @GetMapping("/transactions/count")
+    @Operation(summary = "Динамика по количеству транзакций за период")
     public ResponseEntity<List<CountByPeriodResponse>> getCountByPeriod(
             @Valid @ModelAttribute CountByPeriodRequest request) {
         UUID userId = userContext.getCurrentUserId();
@@ -43,21 +45,10 @@ public class DashboardController {
     }
 
     /**
-     * 2. Распределение по типу транзакции
+     * 2. Динамика транзакций по типу
      */
     @GetMapping("/transactions/type")
-    public ResponseEntity<List<CountByTypeResponse>> getCountByType(
-            @Valid @ModelAttribute CountByTypeRequest request) {
-        UUID userId = userContext.getCurrentUserId();
-        CountByTypeQuery query = mapper.toCountByTypeQuery(request, userId);
-        List<CountByTypeResult> results = dashboardService.countByType(query);
-        return ResponseEntity.ok(mapper.toCountByTypeResponseList(results));
-    }
-
-    /**
-     * 2b. Динамика транзакций по типу
-     */
-    @GetMapping("/transactions/type-dynamics")
+    @Operation(summary = "Динамика транзакций по типу за период")
     public ResponseEntity<List<CountByPeriodResponse>> getDynamicsByType(
             @Valid @ModelAttribute DynamicsByTypeRequest request) {
         UUID userId = userContext.getCurrentUserId();
@@ -70,6 +61,7 @@ public class DashboardController {
      * 3. Сравнение сумм поступлений и расходов
      */
     @GetMapping("/transactions/compare")
+    @Operation(summary = "Сравнение сумм поступлений и расходов за период")
     public ResponseEntity<List<CompareFundsResponse>> compareFunds(
             @Valid @ModelAttribute CompareFundsRequest request) {
         UUID userId = userContext.getCurrentUserId();
@@ -82,6 +74,7 @@ public class DashboardController {
      * 4. Количество проведённых и отменённых транзакций
      */
     @GetMapping("/transactions/status")
+    @Operation(summary = "Количество проведённых и отменённых транзакций за период")
     public ResponseEntity<List<CountByStatusResponse>> getCountByStatus(
             @Valid @ModelAttribute CountByStatusRequest request) {
         UUID userId = userContext.getCurrentUserId();
@@ -94,6 +87,7 @@ public class DashboardController {
      * 5. Статистика по банкам отправителя/получателя
      */
     @GetMapping("/transactions/banks")
+    @Operation(summary = "Статистика по банкам отправителя/получателя за период")
     public ResponseEntity<List<StatsByBankResponse>> getStatsByBank(
             @Valid @ModelAttribute StatsByBankRequest request) {
         UUID userId = userContext.getCurrentUserId();
@@ -106,6 +100,7 @@ public class DashboardController {
      * 6. Статистика по категориям расходов/доходов
      */
     @GetMapping("/transactions/categories")
+    @Operation(summary = "Статистика по категориям расходов/доходов за период")
     public ResponseEntity<List<StatsByCategoryResponse>> getStatsByCategory(
             @Valid @ModelAttribute StatsByCategoryRequest request) {
         UUID userId = userContext.getCurrentUserId();

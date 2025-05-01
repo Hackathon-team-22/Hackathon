@@ -23,11 +23,6 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public List<CountByTypeResult> countByType(CountByTypeQuery query) {
-        return repository.fetchCountByType(query.userId(), query.type(), query.period(), query.start(), query.end());
-    }
-
-    @Override
     public List<DynamicsByTypeResult> dynamicsByType(DynamicsByTypeQuery query) {
         return repository.fetchDynamicsByType(query.userId(), query.type(), query.period(), query.start(), query.end());
     }

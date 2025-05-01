@@ -65,12 +65,10 @@ public class DashboardRepositoryImpl implements DashboardRepository {
     }
 
     @Override
-    public List<CountByTypeResult> fetchCountByType(UUID userId, TxnType type, Period period, LocalDateTime start, LocalDateTime end) {
+    public List<DynamicsByTypeResult> fetchDynamicsByType(UUID userId, TxnType type, Period period, LocalDateTime start, LocalDateTime end) {
         String unit = truncUnit(period);
         String sqlTemplate = """
-                SELECT date_trunc('%s', t.timestamp) AS period_start,
-                       COUNT(*) AS cnt,
-                       tt.name AS type
+                SELECT date_trunc('%s', t.timestamp) AS period_start, COUNT(*) AS cnt
                   FROM transactions t
                   JOIN transaction_type tt ON t.transaction_type_id = tt.id
                  WHERE t.created_by_user_id = :userId
@@ -88,25 +86,13 @@ public class DashboardRepositoryImpl implements DashboardRepository {
                 .setParameter("start", Timestamp.valueOf(start))
                 .setParameter("end", Timestamp.valueOf(end))
                 .getResultList();
+        List<DynamicsByTypeResult> result = new ArrayList<>(rows.size());
 
-        List<CountByTypeResult> result = new ArrayList<>(rows.size());
         for (Object[] row : rows) {
             Timestamp ts = Timestamp.from((Instant) row[0]);
             LocalDate periodStart = ts.toLocalDateTime().toLocalDate();
             long cnt = ((Number) row[1]).longValue();
-            TxnType txnType = TxnType.valueOf((String) row[2]);
-            result.add(new CountByTypeResult(periodStart, cnt, txnType));
-        }
-        return result;
-    }
-
-    @Override
-    public List<DynamicsByTypeResult> fetchDynamicsByType(UUID userId, TxnType type, Period period, LocalDateTime start, LocalDateTime end) {
-        // reuse the same query as fetchCountByType but ignore the type field in result
-        List<CountByTypeResult> intermediate = fetchCountByType(userId, type, period, start, end);
-        List<DynamicsByTypeResult> result = new ArrayList<>(intermediate.size());
-        for (CountByTypeResult r : intermediate) {
-            result.add(new DynamicsByTypeResult(r.period_start(), r.count()));
+            result.add(new DynamicsByTypeResult(periodStart, cnt));
         }
         return result;
     }

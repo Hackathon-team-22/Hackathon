@@ -10,9 +10,6 @@ public interface DashboardService {
     /** 1. Динамика по количеству транзакций за период */
     List<CountByPeriodResult> countByPeriod(CountByPeriodQuery query);
 
-    /** 2. Распределение по типу транзакции за период */
-    List<CountByTypeResult> countByType(CountByTypeQuery query);
-
     /** 2b. Динамика транзакций по типу и периоду */
     List<DynamicsByTypeResult> dynamicsByType(DynamicsByTypeQuery query);
 
