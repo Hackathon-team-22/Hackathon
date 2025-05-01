@@ -3,7 +3,7 @@ package com.example.finmonitor.domain.service;
 import com.example.finmonitor.domain.model.AuditLog;
 import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.model.User;
-import com.example.finmonitor.domain.repository.AuditLogRepository;
+import com.example.finmonitor.repository.AuditLogRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

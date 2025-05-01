@@ -3,7 +3,7 @@ package com.example.finmonitor.domain.service;
 
 import com.example.finmonitor.domain.model.AuditLog;
 import com.example.finmonitor.domain.model.Transaction;
-import com.example.finmonitor.domain.repository.AuditLogRepository;
+import com.example.finmonitor.repository.AuditLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

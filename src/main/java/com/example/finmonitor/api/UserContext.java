@@ -1,7 +1,7 @@
 package com.example.finmonitor.api;
 
 import com.example.finmonitor.domain.model.User;
-import com.example.finmonitor.domain.repository.UserRepository;
+import com.example.finmonitor.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

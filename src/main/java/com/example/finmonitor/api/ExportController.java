@@ -2,8 +2,8 @@ package com.example.finmonitor.api;
 
 import com.example.finmonitor.domain.model.Transaction;
 import com.example.finmonitor.domain.model.AuditLog;
-import com.example.finmonitor.domain.repository.TransactionRepository;
-import com.example.finmonitor.domain.repository.AuditLogRepository;
+import com.example.finmonitor.repository.TransactionRepository;
+import com.example.finmonitor.repository.AuditLogRepository;
 import com.example.finmonitor.domain.spec.AuditLogSpecification;
 import com.example.finmonitor.domain.spec.TransactionSpecification;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,9 +94,19 @@ public class ExportController {
         response.setContentType("text/csv");
         response.setHeader("Content-Disposition", "attachment; filename=audit_log.csv");
         try (PrintWriter writer = response.getWriter()) {
-            // шапка CSV
+            writer.println("id,entityName,entityId,changedByUserId,timestamp,changes");
             List<AuditLog> logs = auditLogRepository.findAll(spec);
-            // запись строк
+            DateTimeFormatter fmt = DateTimeFormatter.ISO_DATE_TIME;
+            for (AuditLog log : logs) {
+                writer.printf("%s,%s,%s,%s,%s,%s%n",
+                        log.getId(),
+                        log.getEntityName(),
+                        log.getEntityId(),
+                        log.getChangedByUser().getId(),
+                        log.getTimestamp().format(fmt),
+                        log.getChanges().replaceAll(",", " ")
+                );
+            }
         }
     }
 
