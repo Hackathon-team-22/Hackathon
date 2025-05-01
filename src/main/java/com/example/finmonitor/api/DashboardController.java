@@ -1,6 +1,5 @@
-package com.example.finmonitor.api.controller;
+package com.example.finmonitor.api;
 
-import com.example.finmonitor.api.UserContext;
 import com.example.finmonitor.api.dto.dashboard.*;
 import com.example.finmonitor.api.mapper.DashboardMapper;
 import com.example.finmonitor.application.usecase.dashboard.DashboardService;
@@ -31,7 +30,9 @@ public class DashboardController {
         this.userContext = userContext;
     }
 
-    /** 1. Динамика по количеству транзакций за период */
+    /**
+     * 1. Динамика по количеству транзакций за период
+     */
     @GetMapping("/transactions/count")
     public ResponseEntity<List<CountByPeriodResponse>> getCountByPeriod(
             @Valid @ModelAttribute CountByPeriodRequest request) {
@@ -41,7 +42,9 @@ public class DashboardController {
         return ResponseEntity.ok(mapper.toCountByPeriodResponseList(results));
     }
 
-    /** 2. Распределение по типу транзакции */
+    /**
+     * 2. Распределение по типу транзакции
+     */
     @GetMapping("/transactions/type")
     public ResponseEntity<List<CountByTypeResponse>> getCountByType(
             @Valid @ModelAttribute CountByTypeRequest request) {
@@ -51,7 +54,9 @@ public class DashboardController {
         return ResponseEntity.ok(mapper.toCountByTypeResponseList(results));
     }
 
-    /** 2b. Динамика транзакций по типу */
+    /**
+     * 2b. Динамика транзакций по типу
+     */
     @GetMapping("/transactions/type-dynamics")
     public ResponseEntity<List<CountByPeriodResponse>> getDynamicsByType(
             @Valid @ModelAttribute DynamicsByTypeRequest request) {
@@ -61,7 +66,9 @@ public class DashboardController {
         return ResponseEntity.ok(mapper.toCountByPeriodResponseListFromDynamics(results));
     }
 
-    /** 3. Сравнение сумм поступлений и расходов */
+    /**
+     * 3. Сравнение сумм поступлений и расходов
+     */
     @GetMapping("/transactions/compare")
     public ResponseEntity<List<CompareFundsResponse>> compareFunds(
             @Valid @ModelAttribute CompareFundsRequest request) {
@@ -71,7 +78,9 @@ public class DashboardController {
         return ResponseEntity.ok(mapper.toCompareFundsResponseList(result));
     }
 
-    /** 4. Количество проведённых и отменённых транзакций */
+    /**
+     * 4. Количество проведённых и отменённых транзакций
+     */
     @GetMapping("/transactions/status")
     public ResponseEntity<List<CountByStatusResponse>> getCountByStatus(
             @Valid @ModelAttribute CountByStatusRequest request) {
@@ -81,7 +90,9 @@ public class DashboardController {
         return ResponseEntity.ok(mapper.toCountByStatusResponseList(result));
     }
 
-    /** 5. Статистика по банкам отправителя/получателя */
+    /**
+     * 5. Статистика по банкам отправителя/получателя
+     */
     @GetMapping("/transactions/banks")
     public ResponseEntity<List<StatsByBankResponse>> getStatsByBank(
             @Valid @ModelAttribute StatsByBankRequest request) {
@@ -91,7 +102,9 @@ public class DashboardController {
         return ResponseEntity.ok(mapper.toStatsByBankResponseList(results));
     }
 
-    /** 6. Статистика по категориям расходов/доходов */
+    /**
+     * 6. Статистика по категориям расходов/доходов
+     */
     @GetMapping("/transactions/categories")
     public ResponseEntity<List<StatsByCategoryResponse>> getStatsByCategory(
             @Valid @ModelAttribute StatsByCategoryRequest request) {
