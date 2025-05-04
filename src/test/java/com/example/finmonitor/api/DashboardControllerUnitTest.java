@@ -100,8 +100,8 @@ class DashboardControllerUnitTest {
 
             mockMvc.perform(get("/dashboard/transactions/count")
                             .param("period", Period.MONTH.name())
-                            .param("start",  "2025-04-01T00:00:00")
-                            .param("end",    "2025-04-30T23:59:00")
+                            .param("start", "2025-04-01T00:00:00")
+                            .param("end", "2025-04-30T23:59:00")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -110,50 +110,6 @@ class DashboardControllerUnitTest {
         }
     }
 
-    @Nested
-    @DisplayName("GET /dashboard/transactions/type")
-    class GetCountByType {
-
-        @Test
-        @DisplayName("возвращает 200 и JSON с количеством транзакций по типам")
-        void getCountByType_returns200AndJson() throws Exception {
-            CountByTypeQuery query = new CountByTypeQuery(
-                    userId,
-                    TxnType.CREDIT,
-                    Period.WEEK,
-                    LocalDateTime.of(2025, 4, 30, 0, 0),
-                    LocalDateTime.of(2025, 4, 30, 23, 59)
-            );
-            CountByTypeResult result = new CountByTypeResult(
-                    LocalDate.of(2025, 4, 30),
-                    7,
-                    TxnType.CREDIT
-            );
-            CountByTypeResponse apiResponse = new CountByTypeResponse(
-                    result.period_start(),
-                    result.count(),
-                    result.type()
-            );
-
-            given(mapper.toCountByTypeQuery(any(CountByTypeRequest.class), eq(userId)))
-                    .willReturn(query);
-            given(dashboardService.countByType(eq(query)))
-                    .willReturn(List.of(result));
-            given(mapper.toCountByTypeResponseList(anyList()))
-                    .willReturn(List.of(apiResponse));
-
-            mockMvc.perform(get("/dashboard/transactions/type")
-                            .param("period", Period.WEEK.name())
-                            .param("start",  "2025-04-30T00:00:00")
-                            .param("end",    "2025-04-30T23:59:00")
-                            .param("type",   TxnType.CREDIT.name())
-                            .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$[0].period_start").value("2025-04-30"))
-                    .andExpect(jsonPath("$[0].count").value(7))
-                    .andExpect(jsonPath("$[0].type").value("CREDIT"));
-        }
-    }
 
     @Nested
     @DisplayName("GET /dashboard/transactions/type-dynamics")
@@ -187,9 +143,9 @@ class DashboardControllerUnitTest {
 
             mockMvc.perform(get("/dashboard/transactions/type-dynamics")
                             .param("period", Period.WEEK.name())
-                            .param("start",  "2025-04-30T00:00:00")
-                            .param("end",    "2025-04-30T23:59:00")
-                            .param("type",   TxnType.DEBIT.name())
+                            .param("start", "2025-04-30T00:00:00")
+                            .param("end", "2025-04-30T23:59:00")
+                            .param("type", TxnType.DEBIT.name())
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].period_start").value("2025-04-30"))
@@ -230,8 +186,8 @@ class DashboardControllerUnitTest {
 
             mockMvc.perform(get("/dashboard/transactions/status")
                             .param("period", Period.QUARTER.name())
-                            .param("start",  "2025-01-01T00:00:00")
-                            .param("end",    "2025-03-31T23:59:00")
+                            .param("start", "2025-01-01T00:00:00")
+                            .param("end", "2025-03-31T23:59:00")
                             .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[0].period_start").value("2025-01-01"))

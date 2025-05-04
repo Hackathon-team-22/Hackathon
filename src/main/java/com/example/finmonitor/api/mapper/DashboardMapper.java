@@ -20,11 +20,6 @@ public interface DashboardMapper {
             UUID userId
     );
 
-    CountByTypeQuery toCountByTypeQuery(
-            CountByTypeRequest request,
-            UUID userId
-    );
-
     DynamicsByTypeQuery toDynamicsByTypeQuery(
             DynamicsByTypeRequest request,
             UUID userId
@@ -57,9 +52,6 @@ public interface DashboardMapper {
 
     CountByPeriodResponse toCountByPeriodResponse(CountByPeriodResult model);
     List<CountByPeriodResponse> toCountByPeriodResponseList(List<CountByPeriodResult> models);
-
-    CountByTypeResponse toCountByTypeResponse(CountByTypeResult model);
-    List<CountByTypeResponse> toCountByTypeResponseList(List<CountByTypeResult> models);
 
     CountByPeriodResponse toCountByPeriodResponseFromDynamics(DynamicsByTypeResult model);
     List<CountByPeriodResponse> toCountByPeriodResponseListFromDynamics(List<DynamicsByTypeResult> models);

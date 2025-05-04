@@ -24,17 +24,6 @@ public interface DashboardRepository {
     );
 
     /**
-     * Распределение по типу транзакции (DEBIT/CREDIT) за период.
-     */
-    List<CountByTypeResult> fetchCountByType(
-            UUID userId,
-            TxnType type,
-            Period period,
-            LocalDateTime start,
-            LocalDateTime end
-    );
-
-    /**
      * Динамика транзакций конкретного типа за период.
      */
     List<DynamicsByTypeResult> fetchDynamicsByType(
