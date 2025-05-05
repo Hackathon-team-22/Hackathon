@@ -91,25 +91,29 @@ public class SecurityConfig {
 
                 // 5) Правила доступа
                 .authorizeHttpRequests(auth -> auth
-                        // Public
-                        .requestMatchers(
-                                "/auth/**",
-                                "/swagger-ui.html", "/swagger-ui/**", "/swagger-ui/index.html",
-                                "/v3/api-docs/**",
-                                "/webjars/**",
-                                "/favicon.ico",
-                                "/error"
+                                // Public
+                                .requestMatchers(
+                                        "/auth/**",
+                                        "/swagger-ui.html", "/swagger-ui/**", "/swagger-ui/index.html",
+                                        "/v3/api-docs/**",
+                                        "/webjars/**",
+                                        "/favicon.ico",
+                                        "/error"
+//                                ,"/status/**", "/banks/**", "/transaction-types/**", "/categories/**"
 //                                ,"/dashboard/**", "/transactions/**", "/export/**"
-                        ).permitAll()
+                                ).permitAll()
 
-                        // Spring Boot static resources
-                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
+                                // Spring Boot static resources
+                                .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
 
-                        // Authenticated endpoints
-                        .requestMatchers("/dashboard/**", "/transactions/**", "/export/**").authenticated()
+                                // Authenticated endpoints
+                                .requestMatchers(
+                                        "/dashboard/**", "/transactions/**", "/export/**"
+                                        , "/status/**", "/banks/**", "/transaction-types/**", "/categories/**"
+                                ).authenticated()
 
-                        // Всё остальное — запрещено
-                        .anyRequest().denyAll()
+                                // Всё остальное — запрещено
+                                .anyRequest().denyAll()
                 )
 
                 // 6) JWT-фильтр

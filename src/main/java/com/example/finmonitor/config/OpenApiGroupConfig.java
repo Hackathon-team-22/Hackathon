@@ -16,9 +16,18 @@ public class OpenApiGroupConfig {
     }
 
     @Bean
+    public GroupedOpenApi StatusApi() {
+        return GroupedOpenApi.builder()
+                .group("2. Transaction Attributes")
+                .pathsToMatch("/status/**", "/banks/**", "/transaction-types/**", "/categories/**")
+                .build();
+    }
+
+
+    @Bean
     public GroupedOpenApi transactionApi() {
         return GroupedOpenApi.builder()
-                .group("2. Transactions")
+                .group("3. Transactions")
                 .pathsToMatch("/transactions/**")
                 .build();
     }
@@ -26,7 +35,7 @@ public class OpenApiGroupConfig {
     @Bean
     public GroupedOpenApi dashboardApi() {
         return GroupedOpenApi.builder()
-                .group("3. Dashboard")
+                .group("4. Dashboard")
                 .pathsToMatch("/dashboard/**")
                 .build();
     }
@@ -34,7 +43,7 @@ public class OpenApiGroupConfig {
     @Bean
     public GroupedOpenApi exportApi() {
         return GroupedOpenApi.builder()
-                .group("4. Export")
+                .group("5. Export")
                 .pathsToMatch("/export/**")
                 .build();
     }
