@@ -1,0 +1,68 @@
+@startuml ComponentDiagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(user, "Пользователь", "Менеджер или аналитик системы")
+
+System_Ext(postgres, "PostgreSQL", "Хранит данные транзакций и пользователей")
+
+System_Boundary(financialApp, "Financial Monitoring Application") {
+
+  Container(webApi, "Web API", "Spring Boot", "REST-контроллеры и точка входа в приложение") {
+
+    Component(authController,            "AuthController",            "REST Controller", "Регистрация и авторизация пользователей")
+    Component(dashboardController,       "DashboardController",       "REST Controller", "Метрики и отчёты по транзакциям")
+    Component(transactionController,     "TransactionController",     "REST Controller", "CRUD-операции над транзакциями")
+
+  }
+
+  Container(application, "Application Core", "Java", "Сервисный слой и бизнес-логика") {
+
+    Component(createTxnSvc,   "CreateTransactionService",   "Service", "Создание транзакций")
+    Component(getTxnSvc,      "GetTransactionService",      "Service", "Чтение транзакций по ID")
+    Component(updateTxnSvc,   "UpdateTransactionService",   "Service", "Обновление транзакций")
+    Component(deleteTxnSvc,   "DeleteTransactionService",   "Service", "Удаление транзакций")
+    Component(filterTxnSvc,   "FilterTransactionsService",  "Service", "Фильтрация и пагинация транзакций")
+    Component(dashboardSvc,   "DashboardService",           "Service", "Агрегация и отчёты по транзакциям")
+
+    Component(userContext,    "UserContext",                "Component","Получение текущего пользователя из JWT")
+    Component(jwtProvider,    "JwtProvider",                "Component","Генерация и проверка JWT-токенов")
+
+  }
+
+  Container(db, "Database", "PostgreSQL", "Хранит таблицы users, transactions и прочие") {
+    Component(userRepo,           "UserRepository",           "Repository","Доступ к таблице пользователей")
+    Component(transactionRepo,    "TransactionRepository",    "Repository","Доступ к таблице транзакций")
+  }
+}
+
+' Взаимодействия
+Rel(user, authController,        "POST /auth/*",                   "JSON/HTTPS")
+Rel(user, dashboardController,   "GET /dashboard/transactions/*",   "JSON/HTTPS")
+Rel(user, transactionController, "GET/POST/PUT/DELETE /transactions", "JSON/HTTPS")
+
+Rel(authController,   createTxnSvc,   "вызывает")
+Rel(transactionController, createTxnSvc, "вызывает")
+Rel(transactionController, getTxnSvc,    "вызывает")
+Rel(transactionController, updateTxnSvc, "вызывает")
+Rel(transactionController, deleteTxnSvc, "вызывает")
+Rel(transactionController, filterTxnSvc, "вызывает")
+Rel(dashboardController, dashboardSvc, "вызывает")
+
+Rel(createTxnSvc,   transactionRepo,    "сохраняет/читает")
+Rel(getTxnSvc,      transactionRepo,    "читает")
+Rel(updateTxnSvc,   transactionRepo,    "обновляет")
+Rel(deleteTxnSvc,   transactionRepo,    "удаляет")
+Rel(filterTxnSvc,   transactionRepo,    "читает с пагинацией")
+Rel(dashboardSvc,   transactionRepo,    "читает для агрегации")
+Rel(dashboardSvc,   userRepo,           "читает для связей")
+
+Rel(authController, jwtProvider,   "использует")
+Rel(jwtProvider,    userContext,    "парсит токен и создаёт")
+Rel(userContext,    userRepo,       "читает пользователя")
+
+Rel(transactionRepo, postgres, "JDBC")
+Rel(userRepo,        postgres, "JDBC")
+
+@enduml
