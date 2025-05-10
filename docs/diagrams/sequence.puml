@@ -1,0 +1,41 @@
+@startuml
+actor Client
+participant "DashboardController" as Controller
+participant "DashboardMapper" as Mapper
+participant "DashboardService" as Service
+participant "TransactionRepository" as Repository
+database "PostgreSQL" as DB
+
+Client -> Controller : GET /dashboard/transactions/count\n(period, start, end)
+activate Controller
+
+Controller -> Mapper : toQuery(request, userId)
+activate Mapper
+Mapper --> Controller : CountByPeriodQuery
+deactivate Mapper
+
+Controller -> Service : countByPeriod(query)
+activate Service
+
+Service -> Repository : findCountByPeriod(userId, period, start, end)
+activate Repository
+
+Repository -> DB : SQL SELECT COUNT(*), period\nFROM transactions ...
+activate DB
+DB --> Repository : ResultSet (List<CountByPeriodResult>)
+deactivate DB
+
+Repository --> Service : List<CountByPeriodResult>
+deactivate Repository
+
+Service -> Mapper : toResponse(result)
+activate Mapper
+Mapper --> Service : List<CountByPeriodResponse>
+deactivate Mapper
+
+Service --> Controller : List<CountByPeriodResponse>
+deactivate Service
+
+Controller --> Client : 200 OK + JSON
+deactivate Controller
+@enduml
